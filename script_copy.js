@@ -46,13 +46,9 @@ const ctxSpectrum = canvasSpectrum.getContext("2d");
 const canvasWaveform = document.getElementById("canvas-waveform");
 const ctxWaveform = canvasWaveform.getContext("2d");
 const canvasSpectrogram = document.getElementById("canvas-spectrogram");
-const ctxSpectrogram = canvasSpectrogram
-  ? canvasSpectrogram.getContext("2d")
-  : null;
+const ctxSpectrogram = canvasSpectrogram ? canvasSpectrogram.getContext("2d") : null;
 const canvasVectorscope = document.getElementById("canvas-vectorscope");
-const ctxVectorscope = canvasVectorscope
-  ? canvasVectorscope.getContext("2d")
-  : null;
+const ctxVectorscope = canvasVectorscope ? canvasVectorscope.getContext("2d") : null;
 const hoverTooltip = document.getElementById("hover-tooltip");
 
 let isRunning = false;
@@ -99,8 +95,7 @@ function resizeCanvases() {
   }
 
   if (canvasSpectrogram) {
-    const specGramRect =
-      canvasSpectrogram.parentElement.getBoundingClientRect();
+    const specGramRect = canvasSpectrogram.parentElement.getBoundingClientRect();
     canvasSpectrogram.width = specGramRect.width * dpr;
     canvasSpectrogram.height = specGramRect.height * dpr;
     ctxSpectrogram.setTransform(1, 0, 0, 1, 0, 0);
@@ -110,8 +105,7 @@ function resizeCanvases() {
   }
 
   if (canvasVectorscope) {
-    const vectorscopeRect =
-      canvasVectorscope.parentElement.getBoundingClientRect();
+    const vectorscopeRect = canvasVectorscope.parentElement.getBoundingClientRect();
     canvasVectorscope.width = vectorscopeRect.width * dpr;
     canvasVectorscope.height = vectorscopeRect.height * dpr;
     ctxVectorscope.setTransform(1, 0, 0, 1, 0, 0);
@@ -155,31 +149,6 @@ async function refreshMicrophones() {
 }
 
 function bindSettings() {
-  const toggleFsa = document.getElementById("toggle-fsa");
-  const toggleSpectrogram = document.getElementById("toggle-spectrogram");
-  const toggleOscilloscope = document.getElementById("toggle-oscilloscope");
-  const toggleVectorscope = document.getElementById("toggle-vectorscope");
-
-  const cardFsa = document.getElementById("card-fsa");
-  const cardSpectrogram = document.getElementById("card-spectrogram");
-  const cardOscilloscope = document.getElementById("card-oscilloscope");
-  const cardVectorscope = document.getElementById("card-vectorscope");
-
-  function updateCardVisibility() {
-    cardFsa.style.display = toggleFsa.checked ? "" : "none";
-    cardSpectrogram.style.display = toggleSpectrogram.checked ? "" : "none";
-    cardOscilloscope.style.display = toggleOscilloscope.checked ? "" : "none";
-    cardVectorscope.style.display = toggleVectorscope.checked ? "" : "none";
-    requestAnimationFrame(() => {
-      resizeCanvases();
-    });
-  }
-
-  toggleFsa.addEventListener("change", updateCardVisibility);
-  toggleSpectrogram.addEventListener("change", updateCardVisibility);
-  toggleOscilloscope.addEventListener("change", updateCardVisibility);
-  toggleVectorscope.addEventListener("change", updateCardVisibility);
-
   micSelect.addEventListener("change", async () => {
     if (isRunning) {
       stopAudio();
@@ -269,7 +238,7 @@ async function startAudio() {
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
-
+    
     // Create nodes for vectorscope and correlation
     splitter = audioCtx.createChannelSplitter(2);
     analyserL = audioCtx.createAnalyser();
@@ -279,25 +248,25 @@ async function startAudio() {
     analyser.fftSize = parseInt(fftSizeSelect.value);
     analyserL.fftSize = analyser.fftSize;
     analyserR.fftSize = analyser.fftSize;
-
+    
     analyser.smoothingTimeConstant = parseFloat(smoothingInput.value);
     analyser.minDecibels = parseFloat(minDbInput.value);
     analyser.maxDecibels = parseFloat(maxDbInput.value);
 
     source = audioCtx.createMediaStreamSource(stream);
-
+    
     // Connect audio routing
     source.connect(analyser); // main analyser
     source.connect(splitter);
     splitter.connect(analyserL, 0); // left channel
-
+    
     // If mono microphone, fallback gracefully to outputting 0 on R channel or same as L
     let channelCount = 1;
     if (stream && stream.getAudioTracks().length > 0) {
       const settings = stream.getAudioTracks()[0].getSettings();
       channelCount = settings.channelCount || 1;
     }
-
+    
     if (channelCount > 1) {
       splitter.connect(analyserR, 1);
     } else {
@@ -360,7 +329,7 @@ function stopAudio() {
   ctxWaveform.clearRect(0, 0, wWave, hWave);
 
   peakFill.style.width = "0%";
-  peakValue.textContent = "-∞ dB";
+  peakValue.textContent = "-∁EdB";
   peakValue.style.color = "var(--text-muted)";
 }
 
@@ -689,7 +658,7 @@ function draw(timestamp) {
   let meterOffset = 0;
   if (standard === "k-12") {
     meterOffset = -12;
-    currentPeakDb = 20 * Math.log10(maxAbs);
+    currentPeakDb = 20 * Math.log10(maxAbs); 
     // Usually K-system uses RMS, but we'll show shifted Peak for simplicity
   } else if (standard === "k-14") {
     meterOffset = -14;
@@ -711,27 +680,26 @@ function draw(timestamp) {
 
   // Formatting dB value
   if (prevPeakValue > -100) {
-    peakValue.textContent =
-      prevPeakValue.toFixed(1) + " dB" + (meterOffset ? ` (${standard})` : "");
+    peakValue.textContent = prevPeakValue.toFixed(1) + " dB" + (meterOffset ? ` (${standard})` : "");
   } else {
-    peakValue.textContent = "-∞ dB";
+    peakValue.textContent = "-∁EdB";
   }
 
   // --- 4. Draw Spectrogram ---
   if (ctxSpectrogram && canvasSpectrogram) {
     const wSpecg = canvasSpectrogram.width / (window.devicePixelRatio || 1);
     const hSpecg = canvasSpectrogram.height / (window.devicePixelRatio || 1);
-
+    
     // Shift old content down by 1px
     ctxSpectrogram.drawImage(canvasSpectrogram, 0, 1);
-
+    
     // Draw horizontal line for new data at y=0
     // Re-use logic for x mapping
     for (let i = 0; i < bufferLength; i++) {
       const val = freqData[i];
       const freqBinBase = i * hzPerBin;
       if (freqBinBase < minFreqLog || freqBinBase > maxFreqLog) continue;
-
+      
       let x, barWidthActual;
       if (useLogScale) {
         let freqStart = (i - 0.5) * hzPerBinClamped;
@@ -739,20 +707,18 @@ function draw(timestamp) {
         if (freqStart < minFreqLog) freqStart = minFreqLog;
         if (freqEnd > maxFreqLog) freqEnd = maxFreqLog;
 
-        let xStart =
-          ((Math.log10(freqStart) - logMinFreq) / logMaxMinRatio) * wSpecg;
-        let xEnd =
-          ((Math.log10(freqEnd) - logMinFreq) / logMaxMinRatio) * wSpecg;
+        let xStart = ((Math.log10(freqStart) - logMinFreq) / logMaxMinRatio) * wSpecg;
+        let xEnd = ((Math.log10(freqEnd) - logMinFreq) / logMaxMinRatio) * wSpecg;
         x = Math.max(0, xStart);
         barWidthActual = Math.max(1, xEnd - x);
       } else {
         x = ((freqBinBase - minFreqLog) / linearRange) * wSpecg;
         barWidthActual = Math.max(1, wSpecg / (linearRange / hzPerBin));
       }
-
+      
       let percent = (val - minDb) / dbRange;
       percent = Math.max(0, Math.min(1, percent));
-
+      
       const hue = (1 - percent) * 240; // 240=blue to 0=red
       ctxSpectrogram.fillStyle = `hsl(${hue}, 100%, 50%)`;
       ctxSpectrogram.fillRect(x, 0, Math.ceil(barWidthActual), 1);
@@ -763,7 +729,7 @@ function draw(timestamp) {
   if (ctxVectorscope && canvasVectorscope && analyserL && analyserR) {
     const wVec = canvasVectorscope.width / (window.devicePixelRatio || 1);
     const hVec = canvasVectorscope.height / (window.devicePixelRatio || 1);
-
+    
     ctxVectorscope.fillStyle = "rgba(10, 15, 20, 0.2)"; // Fade effect
     ctxVectorscope.fillRect(0, 0, wVec, hVec);
     ctxVectorscope.strokeStyle = "rgba(226, 232, 240, 0.8)";
@@ -777,21 +743,19 @@ function draw(timestamp) {
     ctxVectorscope.beginPath();
     const wCenter = wVec / 2;
     const hCenter = hVec / 2;
-
-    let dot = 0,
-      normL = 0,
-      normR = 0;
-
+    
+    let dot = 0, normL = 0, normR = 0;
+    
     for (let i = 0; i < timeL.length; i++) {
       const l = timeL[i];
       const r = timeR[i];
-
+      
       const px = wCenter + (r - l) * (wVec / 2);
       const py = hCenter - (l + r) * (hVec / 2);
-
+      
       if (i === 0) ctxVectorscope.moveTo(px, py);
       else ctxVectorscope.lineTo(px, py);
-
+      
       dot += l * r;
       normL += l * l;
       normR += r * r;
@@ -808,12 +772,12 @@ function draw(timestamp) {
       } else {
         corr = 1; // silence is perfectly correlated
       }
-
+      
       correlationValue.textContent = corr.toFixed(2);
       // Map -1 to 1 into 0 to 100%
       const corrPercent = ((corr + 1) / 2) * 100;
       correlationFill.style.width = `${Math.min(100, Math.max(0, corrPercent))}%`;
-
+      
       // Color based on correlation (-1 red, 1 green)
       const hue = (corr + 1) * 60; // 0 to 120 (Red to Green)
       correlationFill.style.backgroundColor = `hsl(${hue}, 100%, 40%)`;
