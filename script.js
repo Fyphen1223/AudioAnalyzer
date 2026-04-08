@@ -368,6 +368,12 @@ function stopAudio() {
 let prevPeakValue = -Infinity;
 let lastDrawTime = 0;
 
+// Reusable buffers for optimization
+let freqDataBuffer = null;
+let timeDataBuffer = null;
+let timeLBuffer = null;
+let timeRBuffer = null;
+
 function draw(timestamp) {
   animationId = requestAnimationFrame(draw);
 
@@ -385,10 +391,16 @@ function draw(timestamp) {
 
   // Get Data
   const bufferLength = analyser.frequencyBinCount;
-  const freqData = new Float32Array(bufferLength);
+  if (!freqDataBuffer || freqDataBuffer.length !== bufferLength) {
+    freqDataBuffer = new Float32Array(bufferLength);
+  }
+  const freqData = freqDataBuffer;
   analyser.getFloatFrequencyData(freqData);
 
-  const timeData = new Float32Array(analyser.fftSize);
+  if (!timeDataBuffer || timeDataBuffer.length !== analyser.fftSize) {
+    timeDataBuffer = new Float32Array(analyser.fftSize);
+  }
+  const timeData = timeDataBuffer;
   analyser.getFloatTimeDomainData(timeData);
 
   // --- 1. Draw Spectrum ---
@@ -769,8 +781,30 @@ function draw(timestamp) {
     ctxVectorscope.strokeStyle = "rgba(226, 232, 240, 0.8)";
     ctxVectorscope.lineWidth = 1;
 
-    const timeL = new Float32Array(analyserL.fftSize);
-    const timeR = new Float32Array(analyserR.fftSize);
+    // Draw Labels
+    ctxVectorscope.fillStyle = "rgba(226, 232, 240, 0.5)";
+    ctxVectorscope.font = "12px monospace";
+    ctxVectorscope.textAlign = "center";
+    ctxVectorscope.textBaseline = "middle";
+    // Top (Mono / M / +1)
+    ctxVectorscope.fillText("M", wVec / 2, 12);
+    // Bottom (Anti-phase / S / -1)
+    ctxVectorscope.fillText("-", wVec / 2, hVec - 12);
+    // Left (Left Channel)
+    ctxVectorscope.fillText("L", 12, hVec / 2);
+    // Right (Right Channel)
+    ctxVectorscope.fillText("R", wVec - 12, hVec / 2);
+
+    if (!timeLBuffer || timeLBuffer.length !== analyserL.fftSize) {
+      timeLBuffer = new Float32Array(analyserL.fftSize);
+    }
+    const timeL = timeLBuffer;
+
+    if (!timeRBuffer || timeRBuffer.length !== analyserR.fftSize) {
+      timeRBuffer = new Float32Array(analyserR.fftSize);
+    }
+    const timeR = timeRBuffer;
+
     analyserL.getFloatTimeDomainData(timeL);
     analyserR.getFloatTimeDomainData(timeR);
 
