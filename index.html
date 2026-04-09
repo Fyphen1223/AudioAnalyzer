@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Professional Audio Analyzer</title>
+    <title>Audio Analyzer / AA</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -11,6 +11,7 @@
       <header>
         <div class="header-left">
           <h1>Audio Analyzer</h1>
+		  <br>
           <button id="btn-mic" class="btn">Start Microphone</button>
         </div>
       </header>
@@ -59,8 +60,8 @@
             <div class="setting-group">
               <label for="freq-scale">FSA Scale</label>
               <select id="freq-scale">
-                <option value="linear" selected>Linear</option>
-                <option value="logarithmic">Logarithmic</option>
+                <option value="linear">Linear</option>
+                <option value="logarithmic" selected>Logarithmic</option>
               </select>
             </div>
 
@@ -225,11 +226,11 @@
                 <div class="marker" style="left: 100%">0</div>
               </div>
             </div>
-            <div class="peak-readout" id="peak-value">-∞ dB</div>
+            <div class="peak-readout" id="peak-value">-∁EdB</div>
           </div>
 
           <div class="panel info-panel">
-            <h2>Microphone Info</h2>
+            <h2>Microphone & Render Info</h2>
             <p>
               Status:
               <span id="audio-status" class="status-offline">Offline</span>
@@ -237,6 +238,7 @@
             <p>Sample Rate: <span id="sample-rate">--</span> Hz</p>
             <p>Channels: <span id="audio-channels">--</span></p>
             <p>Device: <span id="audio-device-name">--</span></p>
+            <p>Effective FPS: <span id="fps-display">--</span></p>
           </div>
         </aside>
 
@@ -249,8 +251,9 @@
               <h3>Frequency Spectrum</h3>
               <span class="viz-info">Peak Freq: <span id="peak-freq">--</span> Hz</span>
             </div>
-            <div class="canvas-wrapper">
-              <canvas id="canvas-spectrum"></canvas>
+              <div class="canvas-wrapper" style="position: relative;">
+                <canvas id="canvas-spectrum" style="position: absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+                <canvas id="canvas-spectrum-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></canvas>
               <!-- Grid lines overlay -->
               <div class="grid-overlay horizontal">
                 <div class="y-labels">
@@ -259,13 +262,7 @@
                   <span>-60 dB</span>
                   <span>-90 dB</span>
                 </div>
-                <div class="x-labels">
-                  <span>0 Hz</span>
-                  <span>5k</span>
-                  <span>10k</span>
-                  <span>15k</span>
-                  <span>20k</span>
-                </div>
+
               </div>
             </div>
           </div>
@@ -273,10 +270,11 @@
           <!-- Bottom Left: Spectrogram -->
           <div class="viz-card" id="card-spectrogram">
             <div class="viz-header">
-              <h3>Spectrogram (Waterfall)</h3>
+              <h3>Spectrogram</h3>
             </div>
-            <div class="canvas-wrapper">
-              <canvas id="canvas-spectrogram"></canvas>
+            <div class="canvas-wrapper" style="position: relative;">
+              <canvas id="canvas-spectrogram" style="position: absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+              <canvas id="canvas-spectrogram-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></canvas>
             </div>
           </div>
 
@@ -308,146 +306,6 @@
                   <div style="position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: rgba(255,255,255,0.1); transform: translateX(-50%) rotate(45deg);"></div>
                   <div style="position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: rgba(255,255,255,0.1); transform: translateX(-50%) rotate(-45deg);"></div>
               </div>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
-
-    <script src="script.js"></script>
-  </body>
-</html>
-                style="display: inline-block; margin-right: 0.5rem"
-                >Standard:</label
-              >
-              <select
-                id="metering-standard"
-                style="width: auto; display: inline-block; padding: 0.2rem"
-              >
-                <option value="peak" selected>Peak</option>
-                <option value="rms">RMS</option>
-                <option value="lufs">LUFS (Approx)</option>
-                <option value="k-12">K-12</option>
-                <option value="k-14">K-14</option>
-                <option value="k-20">K-20</option>
-              </select>
-            </div>
-
-            <div class="meter-wrapper">
-              <div class="meter-track">
-                <div class="meter-fill" id="peak-fill"></div>
-
-                <!-- Scale markers -->
-                <div class="marker" id="marker-60" style="left: 0%">-60</div>
-                <div class="marker" id="marker-12" style="left: 80%">-12</div>
-                <div class="marker" id="marker-3" style="left: 95%">-3</div>
-                <div class="marker" id="marker-0" style="left: 100%">0</div>
-              </div>
-            </div>
-            <div class="peak-readout" id="peak-value">-∞ dB</div>
-
-            <div class="meter-wrapper" style="margin-top: 2rem">
-              <div
-                style="
-                  font-size: 0.8rem;
-                  margin-bottom: 0.2rem;
-                  color: var(--text-muted);
-                  display: flex;
-                  justify-content: space-between;
-                "
-              >
-                <span>Phase Correlation</span>
-                <span id="correlation-value">0.00</span>
-              </div>
-              <div class="meter-track" style="margin-bottom: 0.5rem">
-                <div
-                  class="meter-fill"
-                  id="correlation-fill"
-                  style="
-                    width: 0%;
-                    left: 50%;
-                    position: absolute;
-                    background: #66ccff;
-                    transition: all 0.05s ease-out;
-                    transform-origin: left center;
-                  "
-                ></div>
-                <div class="marker" style="left: 0%">-1</div>
-                <div class="marker" style="left: 50%">0</div>
-                <div class="marker" style="left: 100%">+1</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel info-panel">
-            <h2>Microphone Info</h2>
-            <p>
-              Status:
-              <span id="audio-status" class="status-offline">Offline</span>
-            </p>
-            <p>Sample Rate: <span id="sample-rate">--</span> Hz</p>
-            <p>Channels: <span id="audio-channels">--</span></p>
-            <p>Device: <span id="audio-device-name">--</span></p>
-          </div>
-        </aside>
-
-        <section class="visualizers">
-          <div class="viz-card">
-            <div class="viz-header">
-              <h3>Frequency Spectrum Analyzer</h3>
-              <span class="viz-info"
-                >Peak Freq: <span id="peak-freq">--</span> Hz</span
-              >
-            </div>
-            <div class="canvas-wrapper">
-              <canvas id="canvas-spectrum"></canvas>
-
-              <!-- Grid lines overlay -->
-              <div class="grid-overlay horizontal">
-                <div class="y-labels">
-                  <span>0 dB</span>
-                  <span>-30 dB</span>
-                  <span>-60 dB</span>
-                  <span>-90 dB</span>
-                </div>
-                <div class="x-labels">
-                  <span>0 Hz</span>
-                  <span>5k</span>
-                  <span>10k</span>
-                  <span>15k</span>
-                  <span>20k</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="viz-card">
-            <div class="viz-header">
-              <h3>Oscilloscope (Real-time Waveform)</h3>
-            </div>
-            <div class="canvas-wrapper">
-              <canvas id="canvas-waveform"></canvas>
-
-              <!-- Center line overlay -->
-              <div class="center-line"></div>
-            </div>
-          </div>
-
-          <div class="viz-card">
-            <div class="viz-header">
-              <h3>Spectrogram (Time-Frequency)</h3>
-            </div>
-            <div class="canvas-wrapper">
-              <canvas id="canvas-spectrogram"></canvas>
-            </div>
-          </div>
-
-          <div class="viz-card">
-            <div class="viz-header">
-              <h3>Stereo Field (Vectorscope)</h3>
-            </div>
-            <div class="canvas-wrapper">
-              <canvas id="canvas-vectorscope"></canvas>
             </div>
           </div>
         </section>

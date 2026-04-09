@@ -1,0 +1,75 @@
+export function getDomRefs() {
+  const canvasSpectrum = document.getElementById("canvas-spectrum");
+  const canvasSpectrumOverlay = document.getElementById(
+    "canvas-spectrum-overlay",
+  );
+  const canvasWaveform = document.getElementById("canvas-waveform");
+  const canvasSpectrogram = document.getElementById("canvas-spectrogram");
+  const canvasSpectrogramOverlay = document.getElementById(
+    "canvas-spectrogram-overlay",
+  );
+  const canvasVectorscope = document.getElementById("canvas-vectorscope");
+
+  return {
+    btnMic: document.getElementById("btn-mic"),
+    statusText: document.getElementById("audio-status"),
+    sampleRateText: document.getElementById("sample-rate"),
+    channelsText: document.getElementById("audio-channels"),
+    deviceNameText: document.getElementById("audio-device-name"),
+
+    fftSizeSelect: document.getElementById("fft-size"),
+    specThemeSelect: document.getElementById("spec-theme"),
+    specModeSelect: document.getElementById("spec-mode"),
+    smoothingInput: document.getElementById("smoothing"),
+    smoothingVal: document.getElementById("smoothing-val"),
+    minDbInput: document.getElementById("min-db"),
+    minDbVal: document.getElementById("min-db-val"),
+    maxDbInput: document.getElementById("max-db"),
+    maxDbVal: document.getElementById("max-db-val"),
+    micSelect: document.getElementById("mic-select"),
+    updateRateSelect: document.getElementById("update-rate"),
+    freqScaleSelect: document.getElementById("freq-scale"),
+    freqMinInput: document.getElementById("freq-min"),
+    freqMaxInput: document.getElementById("freq-max"),
+    peakCountInput: document.getElementById("peak-count"),
+    peakCountVal: document.getElementById("peak-count-val"),
+    howlingWarning: document.getElementById("howling-warning"),
+    meteringStandard: document.getElementById("metering-standard"),
+
+    peakFill: document.getElementById("peak-fill"),
+    peakValue: document.getElementById("peak-value"),
+    peakFreqValue: document.getElementById("peak-freq"),
+    correlationValue: document.getElementById("correlation-value"),
+    correlationFill: document.getElementById("correlation-fill"),
+
+    canvasSpectrum,
+    ctxSpectrum: canvasSpectrum
+      ? canvasSpectrum.getContext("webgl2", { preserveDrawingBuffer: false }) ||
+        canvasSpectrum.getContext("webgl", { preserveDrawingBuffer: false })
+      : null,
+    canvasSpectrumOverlay,
+    ctxSpectrumOverlay: canvasSpectrumOverlay
+      ? canvasSpectrumOverlay.getContext("2d")
+      : null,
+    canvasWaveform,
+    ctxWaveform: canvasWaveform ? canvasWaveform.getContext("2d") : null,
+    canvasSpectrogram,
+    ctxSpectrogram: canvasSpectrogram
+      ? canvasSpectrogram.getContext("webgl2", {
+          preserveDrawingBuffer: true,
+        }) ||
+        canvasSpectrogram.getContext("webgl", { preserveDrawingBuffer: true })
+      : null,
+    canvasSpectrogramOverlay,
+    ctxSpectrogramOverlay: canvasSpectrogramOverlay
+      ? canvasSpectrogramOverlay.getContext("2d")
+      : null,
+    canvasVectorscope,
+    ctxVectorscope: canvasVectorscope
+      ? canvasVectorscope.getContext("2d")
+      : null,
+
+    hoverTooltip: document.getElementById("hover-tooltip"),
+    fpsDisplay: document.getElementById("fps-display"),
+  };
+}
