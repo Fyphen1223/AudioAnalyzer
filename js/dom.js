@@ -38,6 +38,9 @@ export function getDomRefs() {
 
     peakFill: document.getElementById("peak-fill"),
     peakValue: document.getElementById("peak-value"),
+    clipLogContainer: document.getElementById("clip-log-container"),
+    clipLogEmpty: document.getElementById("clip-log-empty"),
+    btnClearClips: document.getElementById("btn-clear-clips"),
     peakFreqValue: document.getElementById("peak-freq"),
     correlationValue: document.getElementById("correlation-value"),
     correlationFill: document.getElementById("correlation-fill"),
@@ -52,7 +55,10 @@ export function getDomRefs() {
       ? canvasSpectrumOverlay.getContext("2d")
       : null,
     canvasWaveform,
-    ctxWaveform: canvasWaveform ? canvasWaveform.getContext("2d") : null,
+    ctxWaveform: canvasWaveform
+      ? canvasWaveform.getContext("webgl2", { preserveDrawingBuffer: false }) ||
+        canvasWaveform.getContext("webgl", { preserveDrawingBuffer: false })
+      : null,
     canvasSpectrogram,
     ctxSpectrogram: canvasSpectrogram
       ? canvasSpectrogram.getContext("webgl2", {
@@ -66,8 +72,13 @@ export function getDomRefs() {
       : null,
     canvasVectorscope,
     ctxVectorscope: canvasVectorscope
-      ? canvasVectorscope.getContext("2d")
+      ? canvasVectorscope.getContext("webgl2", {
+          preserveDrawingBuffer: false,
+        }) ||
+        canvasVectorscope.getContext("webgl", { preserveDrawingBuffer: false })
       : null,
+    canvasVectorscopeOverlay: null, // If needed in future
+    ctxVectorscopeOverlay: null,
 
     hoverTooltip: document.getElementById("hover-tooltip"),
     fpsDisplay: document.getElementById("fps-display"),

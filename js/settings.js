@@ -112,6 +112,17 @@ export function bindSettings({
       state.analyser.maxDecibels = parseFloat(dom.maxDbInput.value);
   });
 
+  if (dom.btnClearClips) {
+    dom.btnClearClips.addEventListener("click", () => {
+      state.clipLogs = [];
+      if (dom.clipLogContainer) {
+        dom.clipLogContainer.innerHTML =
+          '<div style="color: var(--text-muted); text-align: center; padding: 1rem 0;" id="clip-log-empty">No clips recorded</div>';
+        dom.clipLogEmpty = document.getElementById("clip-log-empty");
+      }
+    });
+  }
+
   updateXLabels();
   updateCardVisibility();
 }

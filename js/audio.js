@@ -148,7 +148,25 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
 
     const wWave = dom.canvasWaveform.width / (window.devicePixelRatio || 1);
     const hWave = dom.canvasWaveform.height / (window.devicePixelRatio || 1);
-    dom.ctxWaveform.clearRect(0, 0, wWave, hWave);
+    if (dom.ctxWaveform.clearColor) {
+      dom.ctxWaveform.clearColor(0.0, 0.0, 0.0, 0.0);
+      dom.ctxWaveform.clear(dom.ctxWaveform.COLOR_BUFFER_BIT);
+    } else if (dom.ctxWaveform.clearRect) {
+      dom.ctxWaveform.clearRect(0, 0, wWave, hWave);
+    }
+
+    if (dom.ctxVectorscope) {
+      if (dom.ctxVectorscope.clearColor) {
+        dom.ctxVectorscope.clearColor(10 / 255, 15 / 255, 20 / 255, 0.2);
+        dom.ctxVectorscope.clear(dom.ctxVectorscope.COLOR_BUFFER_BIT);
+      } else if (dom.ctxVectorscope.clearRect) {
+        const wVec =
+          dom.canvasVectorscope.width / (window.devicePixelRatio || 1);
+        const hVec =
+          dom.canvasVectorscope.height / (window.devicePixelRatio || 1);
+        dom.ctxVectorscope.clearRect(0, 0, wVec, hVec);
+      }
+    }
 
     dom.peakFill.style.width = "0%";
     dom.peakValue.textContent = "-∞ dB";

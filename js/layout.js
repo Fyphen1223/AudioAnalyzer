@@ -26,8 +26,19 @@ export function resizeCanvases(dom) {
     const waveRect = dom.canvasWaveform.parentElement.getBoundingClientRect();
     dom.canvasWaveform.width = waveRect.width * dpr;
     dom.canvasWaveform.height = waveRect.height * dpr;
-    dom.ctxWaveform.setTransform(1, 0, 0, 1, 0, 0);
-    dom.ctxWaveform.scale(dpr, dpr);
+
+    if (dom.ctxWaveform.viewport) {
+      dom.ctxWaveform.viewport(
+        0,
+        0,
+        dom.canvasWaveform.width,
+        dom.canvasWaveform.height,
+      );
+    } else if (dom.ctxWaveform.setTransform) {
+      dom.ctxWaveform.setTransform(1, 0, 0, 1, 0, 0);
+      dom.ctxWaveform.scale(dpr, dpr);
+    }
+
     dom.canvasWaveform.style.width = waveRect.width + "px";
     dom.canvasWaveform.style.height = waveRect.height + "px";
   }
@@ -59,8 +70,19 @@ export function resizeCanvases(dom) {
       dom.canvasVectorscope.parentElement.getBoundingClientRect();
     dom.canvasVectorscope.width = vectorscopeRect.width * dpr;
     dom.canvasVectorscope.height = vectorscopeRect.height * dpr;
-    dom.ctxVectorscope.setTransform(1, 0, 0, 1, 0, 0);
-    dom.ctxVectorscope.scale(dpr, dpr);
+
+    if (dom.ctxVectorscope.viewport) {
+      dom.ctxVectorscope.viewport(
+        0,
+        0,
+        dom.canvasVectorscope.width,
+        dom.canvasVectorscope.height,
+      );
+    } else if (dom.ctxVectorscope.setTransform) {
+      dom.ctxVectorscope.setTransform(1, 0, 0, 1, 0, 0);
+      dom.ctxVectorscope.scale(dpr, dpr);
+    }
+
     dom.canvasVectorscope.style.width = vectorscopeRect.width + "px";
     dom.canvasVectorscope.style.height = vectorscopeRect.height + "px";
   }

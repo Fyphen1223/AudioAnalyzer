@@ -18,7 +18,8 @@ export function initApp() {
     state.config.freqMinLog = minF;
     state.config.freqMaxLog = maxF;
     state.config.useLogScale = dom.freqScaleSelect?.value === "logarithmic";
-    state.config.peakCount = parseInt(dom.peakCountInput?.value, 10) || 0;
+    let pc = parseInt(dom.peakCountInput?.value, 10);
+    state.config.peakCount = isNaN(pc) ? 10 : pc;
     state.config.meteringStandard = dom.meteringStandard?.value || "peak";
     state.config.specMode = dom.specModeSelect?.value || "standard";
     state.config.specTheme = dom.specThemeSelect?.value || "classic";
@@ -47,6 +48,8 @@ export function initApp() {
       el.addEventListener("change", syncConfig);
     }
   });
+
+  syncConfig(); // Initialize config from DOM right away
 
   const handleResize = () => {
     resizeCanvases(dom);

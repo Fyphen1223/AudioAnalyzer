@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Audio Analyzer / AA</title>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0f172a" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -11,7 +13,7 @@
       <header>
         <div class="header-left">
           <h1>Audio Analyzer</h1>
-		  <br>
+          <br />
           <button id="btn-mic" class="btn">Start Microphone</button>
         </div>
       </header>
@@ -136,11 +138,62 @@
 
             <div class="setting-group">
               <label>Toggle Visualizers</label>
-              <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
-                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-main); font-size: 0.85rem;"><input type="checkbox" id="toggle-fsa" checked> Frequency Spectrum</label>
-                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-main); font-size: 0.85rem;"><input type="checkbox" id="toggle-spectrogram" checked> Spectrogram</label>
-                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-main); font-size: 0.85rem;"><input type="checkbox" id="toggle-oscilloscope" checked> Oscilloscope</label>
-                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-main); font-size: 0.85rem;"><input type="checkbox" id="toggle-vectorscope" checked> Vectorscope</label>
+              <div
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  gap: 0.5rem;
+                  margin-top: 0.5rem;
+                "
+              >
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    color: var(--text-main);
+                    font-size: 0.85rem;
+                  "
+                  ><input type="checkbox" id="toggle-fsa" checked /> Frequency
+                  Spectrum</label
+                >
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    color: var(--text-main);
+                    font-size: 0.85rem;
+                  "
+                  ><input type="checkbox" id="toggle-spectrogram" checked />
+                  Spectrogram</label
+                >
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    color: var(--text-main);
+                    font-size: 0.85rem;
+                  "
+                  ><input type="checkbox" id="toggle-oscilloscope" checked />
+                  Oscilloscope</label
+                >
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    color: var(--text-main);
+                    font-size: 0.85rem;
+                  "
+                  ><input type="checkbox" id="toggle-vectorscope" checked />
+                  Vectorscope</label
+                >
               </div>
             </div>
 
@@ -208,10 +261,10 @@
 
             <div class="setting-group" style="margin-bottom: 0.5rem">
               <label for="metering-standard">Metering Standard</label>
-              <select id="metering-standard" style="width: 100%;">
+              <select id="metering-standard" style="width: 100%">
                 <option value="peak" selected>Peak (True Peak)</option>
                 <option value="rms">RMS</option>
-                <!-- <option value="lufs">LUFS (Approximation)</option> -->
+                <option value="lufs">LUFS (Approximation)</option>
               </select>
             </div>
 
@@ -226,7 +279,57 @@
                 <div class="marker" style="left: 100%">0</div>
               </div>
             </div>
-            <div class="peak-readout" id="peak-value">-∁EdB</div>
+            <div class="peak-readout" id="peak-value">-&#8734; dB</div>
+            <div class="setting-group" style="margin-top: 1rem">
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 0.5rem;
+                "
+              >
+                <label style="margin: 0">Clipping Log</label>
+                <button
+                  id="btn-clear-clips"
+                  style="
+                    background: var(--bg-dark);
+                    color: var(--text-main);
+                    border: 1px solid var(--border);
+                    border-radius: 4px;
+                    padding: 2px 6px;
+                    font-size: 0.75rem;
+                    cursor: pointer;
+                  "
+                >
+                  Clear
+                </button>
+              </div>
+              <div
+                id="clip-log-container"
+                style="
+                  background: var(--bg-dark);
+                  max-height: 100px;
+                  overflow-y: auto;
+                  padding: 4px;
+                  font-family: monospace;
+                  font-size: 0.8rem;
+                  border: 1px solid var(--border);
+                  border-radius: 4px;
+                "
+              >
+                <div
+                  style="
+                    color: var(--text-muted);
+                    text-align: center;
+                    padding: 1rem 0;
+                  "
+                  id="clip-log-empty"
+                >
+                  No clips recorded
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="panel info-panel">
@@ -243,17 +346,47 @@
         </aside>
 
         <!-- New Multi-Grid Layout -->
-        <section id="visualizers-container" class="visualizers" style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1rem; width: 100%;">
-          
+        <section
+          id="visualizers-container"
+          class="visualizers"
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 1rem;
+            width: 100%;
+          "
+        >
           <!-- Top Left: FSA -->
           <div class="viz-card" id="card-fsa">
             <div class="viz-header">
               <h3>Frequency Spectrum</h3>
-              <span class="viz-info">Peak Freq: <span id="peak-freq">--</span> Hz</span>
+              <span class="viz-info"
+                >Peak Freq: <span id="peak-freq">--</span> Hz</span
+              >
             </div>
-              <div class="canvas-wrapper" style="position: relative;">
-                <canvas id="canvas-spectrum" style="position: absolute; top:0; left:0; width:100%; height:100%;"></canvas>
-                <canvas id="canvas-spectrum-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></canvas>
+            <div class="canvas-wrapper" style="position: relative">
+              <canvas
+                id="canvas-spectrum"
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                "
+              ></canvas>
+              <canvas
+                id="canvas-spectrum-overlay"
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  pointer-events: none;
+                "
+              ></canvas>
               <!-- Grid lines overlay -->
               <div class="grid-overlay horizontal">
                 <div class="y-labels">
@@ -262,7 +395,6 @@
                   <span>-60 dB</span>
                   <span>-90 dB</span>
                 </div>
-
               </div>
             </div>
           </div>
@@ -272,9 +404,28 @@
             <div class="viz-header">
               <h3>Spectrogram</h3>
             </div>
-            <div class="canvas-wrapper" style="position: relative;">
-              <canvas id="canvas-spectrogram" style="position: absolute; top:0; left:0; width:100%; height:100%;"></canvas>
-              <canvas id="canvas-spectrogram-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;"></canvas>
+            <div class="canvas-wrapper" style="position: relative">
+              <canvas
+                id="canvas-spectrogram"
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                "
+              ></canvas>
+              <canvas
+                id="canvas-spectrogram-overlay"
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  pointer-events: none;
+                "
+              ></canvas>
             </div>
           </div>
 
@@ -294,17 +445,136 @@
             <div class="viz-header">
               <h3>Vectorscope (Stereo Field & Phase)</h3>
             </div>
-            <div class="canvas-wrapper" style="display: flex; justify-content: center; align-items: center;">
-              <canvas id="canvas-vectorscope" style="width: auto; height: 100%; aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--border);"></canvas>
-              
-              <div style="position: absolute; bottom: 5px; left: 5px; color: var(--text-muted); font-size: 0.7rem; font-family: monospace;">
+            <div
+              class="canvas-wrapper"
+              style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: relative;
+              "
+            >
+              <div
+                style="
+                  position: absolute;
+                  top: 5px;
+                  color: var(--text-muted);
+                  font-size: 12px;
+                  font-family: monospace;
+                "
+              >
+                M
+              </div>
+              <div
+                style="
+                  position: absolute;
+                  bottom: 5px;
+                  color: var(--text-muted);
+                  font-size: 12px;
+                  font-family: monospace;
+                "
+              >
+                -
+              </div>
+              <div
+                style="
+                  position: absolute;
+                  left: 10px;
+                  color: var(--text-muted);
+                  font-size: 12px;
+                  font-family: monospace;
+                "
+              >
+                L
+              </div>
+              <div
+                style="
+                  position: absolute;
+                  right: 10px;
+                  color: var(--text-muted);
+                  font-size: 12px;
+                  font-family: monospace;
+                "
+              >
+                R
+              </div>
+              <canvas
+                id="canvas-vectorscope"
+                style="
+                  width: auto;
+                  height: 100%;
+                  aspect-ratio: 1;
+                  border-radius: 50%;
+                  border: 1px solid var(--border);
+                "
+              ></canvas>
+
+              <div
+                style="
+                  position: absolute;
+                  bottom: 5px;
+                  left: 5px;
+                  color: var(--text-muted);
+                  font-size: 0.7rem;
+                  font-family: monospace;
+                "
+              >
                 Correlation: <span id="correlation-meter">--</span>
               </div>
-              <div style="position: absolute; top:0; bottom:0; left:0; right:0; pointer-events: none;">
-                  <div style="position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: rgba(255,255,255,0.1); transform: translateX(-50%);"></div>
-                  <div style="position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255,255,255,0.1); transform: translateY(-50%);"></div>
-                  <div style="position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: rgba(255,255,255,0.1); transform: translateX(-50%) rotate(45deg);"></div>
-                  <div style="position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: rgba(255,255,255,0.1); transform: translateX(-50%) rotate(-45deg);"></div>
+              <div
+                style="
+                  position: absolute;
+                  top: 0;
+                  bottom: 0;
+                  left: 0;
+                  right: 0;
+                  pointer-events: none;
+                "
+              >
+                <div
+                  style="
+                    position: absolute;
+                    top: 0;
+                    left: 50%;
+                    width: 1px;
+                    height: 100%;
+                    background: rgba(255, 255, 255, 0.1);
+                    transform: translateX(-50%);
+                  "
+                ></div>
+                <div
+                  style="
+                    position: absolute;
+                    top: 50%;
+                    left: 0;
+                    width: 100%;
+                    height: 1px;
+                    background: rgba(255, 255, 255, 0.1);
+                    transform: translateY(-50%);
+                  "
+                ></div>
+                <div
+                  style="
+                    position: absolute;
+                    top: 0;
+                    left: 50%;
+                    width: 1px;
+                    height: 100%;
+                    background: rgba(255, 255, 255, 0.1);
+                    transform: translateX(-50%) rotate(45deg);
+                  "
+                ></div>
+                <div
+                  style="
+                    position: absolute;
+                    top: 0;
+                    left: 50%;
+                    width: 1px;
+                    height: 100%;
+                    background: rgba(255, 255, 255, 0.1);
+                    transform: translateX(-50%) rotate(-45deg);
+                  "
+                ></div>
               </div>
             </div>
           </div>
@@ -312,6 +582,16 @@
       </main>
     </div>
 
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./sw.js")
+            .then((reg) => console.log("SW registered!", reg))
+            .catch((err) => console.error("SW registration failed!", err));
+        });
+      }
+    </script>
     <script src="script.js"></script>
   </body>
 </html>

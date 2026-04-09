@@ -17,6 +17,7 @@ export function createInitialState() {
     availableMics: [],
 
     prevPeakValue: -Infinity,
+    clipLogs: [],
     lastDrawTime: 0,
     fpsFrameCount: 0,
     lastFpsTime: 0,
