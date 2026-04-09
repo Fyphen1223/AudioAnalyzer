@@ -225,16 +225,16 @@ export function drawSpectrum({ state, dom, frame }) {
   let howlingDetected = false;
   const { peakCount } = state.config;
 
-  if (howlingEnabled || peakCount > 0) {
-    let sumPower = 0;
-    let sampleCount = 0;
-    for (let i = 0; i < bufferLength; i += 4) {
-      sumPower += Math.pow(10, freqData[i] / 10);
-      sampleCount++;
-    }
-    const avgDb = 10 * Math.log10(sumPower / sampleCount);
-    const mOffset = Math.max(2, Math.round(150 / hzPerBin));
+  let sumPower = 0;
+  let sampleCount = 0;
+  for (let i = 0; i < bufferLength; i += 4) {
+    sumPower += Math.pow(10, freqData[i] / 10);
+    sampleCount++;
+  }
+  const avgDb = 10 * Math.log10(sumPower / sampleCount);
+  const mOffset = Math.max(2, Math.round(150 / hzPerBin));
 
+  if (howlingEnabled || peakCount > 0) {
     for (let i = 2; i < bufferLength - 2; i++) {
       const val = freqData[i];
       if (val <= minDb + 5) continue;
@@ -270,6 +270,29 @@ export function drawSpectrum({ state, dom, frame }) {
             (phpr > 15 || h2Index >= bufferLength)
           ) {
             howlingDetected = true;
+
+            const now = new Date();
+            if (!state.lastHowlingTime || now - state.lastHowlingTime > 1000) {
+              state.lastHowlingTime = now;
+              const timeStr = now.toLocaleTimeString();
+              const fStr =
+                f > 1000 ? (f / 1000).toFixed(2) + "k" : Math.round(f);
+              state.eventLogs.unshift(
+                `[${timeStr}] Howling: ${fStr}Hz (${val.toFixed(1)}dB)`,
+              );
+              if (state.eventLogs.length > 50) state.eventLogs.pop();
+
+              if (dom.clipLogContainer) {
+                dom.clipLogContainer.innerHTML = state.eventLogs
+                  .map((log) => {
+                    const color = log.includes("Howling")
+                      ? "#fbbf24"
+                      : "#ef4444";
+                    return `<div style="color: ${color}; border-bottom: 1px solid var(--border); padding: 2px 0;">${log}</div>`;
+                  })
+                  .join("");
+              }
+            }
           }
         }
       }
@@ -342,6 +365,32 @@ export function drawSpectrum({ state, dom, frame }) {
         : Math.round(hoverFreq);
     hoverFreqText += " Hz";
 
+    const binIndex = Math.max(
+      0,
+      Math.min(bufferLength - 1, Math.round(hoverFreq / hzPerBin)),
+    );
+    const val = freqData[binIndex];
+    const papr = val - avgDb;
+    let pnpr = 0;
+    if (binIndex - mOffset >= 0 && binIndex + mOffset < bufferLength) {
+      pnpr = Math.min(
+        val - freqData[binIndex - mOffset],
+        val - freqData[binIndex + mOffset],
+      );
+    }
+    let phpr = 0;
+    const h2Index = binIndex * 2;
+    if (h2Index < bufferLength) phpr = val - freqData[h2Index];
+
+    const statsHtml = `
+      <div>${hoverFreqText}</div>
+      <div style="color:#aaa; font-size:0.7rem; margin-top:2px;">
+        PAPR: ${papr.toFixed(1)}dB<br/>
+        PNPR: ${pnpr.toFixed(1)}dB<br/>
+        PHPR: ${phpr.toFixed(1)}dB
+      </div>
+    `;
+
     if (dom.hoverTooltip && dom.canvasSpectrum) {
       const canvasRect = dom.canvasSpectrum.getBoundingClientRect();
       const tooltipX = canvasRect.left + state.mouseX;
@@ -352,8 +401,8 @@ export function drawSpectrum({ state, dom, frame }) {
       }
       dom.hoverTooltip.style.left = tooltipX + "px";
       dom.hoverTooltip.style.top = tooltipY + "px";
-      if (dom.hoverTooltip.textContent !== hoverFreqText) {
-        dom.hoverTooltip.textContent = hoverFreqText;
+      if (dom.hoverTooltip.innerHTML !== statsHtml) {
+        dom.hoverTooltip.innerHTML = statsHtml;
       }
     }
   } else if (dom.hoverTooltip) {

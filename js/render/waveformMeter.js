@@ -130,14 +130,14 @@ export function drawWaveformAndMeter({ state, dom, frame }) {
     if (!state.lastClipTime || now - state.lastClipTime > 500) {
       state.lastClipTime = now;
       const timeStr = now.toLocaleTimeString();
-      state.clipLogs.unshift(`[${timeStr}] Clip: +${truePeakDb.toFixed(2)} dB`);
-      if (state.clipLogs.length > 50) state.clipLogs.pop();
+      state.eventLogs.unshift(`[${timeStr}] Clip: +${truePeakDb.toFixed(2)} dB`);
+      if (state.eventLogs.length > 50) state.eventLogs.pop();
 
       if (dom.clipLogContainer) {
-        dom.clipLogContainer.innerHTML = state.clipLogs
+        dom.clipLogContainer.innerHTML = state.eventLogs
           .map(
             (log) =>
-              `<div style="color: #ef4444; border-bottom: 1px solid var(--border); padding: 2px 0;">${log}</div>`,
+              `<div style="color: ${log.includes('Howling') ? '#fbbf24' : '#ef4444'}; border-bottom: 1px solid var(--border); padding: 2px 0;">${log}</div>`,
           )
           .join("");
       }
