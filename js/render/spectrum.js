@@ -464,4 +464,51 @@ export function drawSpectrum({ state, dom, frame }) {
     ctxOvl.strokeStyle = "rgba(255, 255, 255, 0.05)";
     ctxOvl.stroke();
   }
+
+  // Draw solo filter overlay (Bandpass)
+  if (
+    state.isDraggingFilter &&
+    state.filterStartX !== null &&
+    state.filterEndX !== null
+  ) {
+    const xMin = Math.min(state.filterStartX, state.filterEndX);
+    const xMax = Math.max(state.filterStartX, state.filterEndX);
+
+    ctxOvl.fillStyle = "rgba(59, 130, 246, 0.3)";
+    ctxOvl.fillRect(xMin, 0, Math.max(1, xMax - xMin), hSpec);
+
+    let fMin = 0,
+      fMax = 0;
+    if (useLogScale) {
+      fMin = minFreqLog * Math.pow(maxFreqLog / minFreqLog, xMin / wSpec);
+      fMax = minFreqLog * Math.pow(maxFreqLog / minFreqLog, xMax / wSpec);
+    } else {
+      fMin = minFreqLog + (maxFreqLog - minFreqLog) * (xMin / wSpec);
+      fMax = minFreqLog + (maxFreqLog - minFreqLog) * (xMax / wSpec);
+    }
+
+    if (fMax < fMin + 1) fMax = fMin + 1;
+
+    const centerFreq = Math.sqrt(fMin * fMax);
+    const bandwidth = fMax - fMin;
+    const qValue = centerFreq / bandwidth;
+
+    if (state.bandpassFilter) {
+      state.bandpassFilter.frequency.value = centerFreq;
+      state.bandpassFilter.Q.value = Math.max(0.0001, qValue);
+    }
+
+    ctxOvl.fillStyle = "#fff";
+    ctxOvl.textAlign = "center";
+    ctxOvl.textBaseline = "top";
+    const textStart =
+      fMin >= 1000 ? (fMin / 1000).toFixed(1) + "k" : Math.round(fMin);
+    const textEnd =
+      fMax >= 1000 ? (fMax / 1000).toFixed(1) + "k" : Math.round(fMax);
+    ctxOvl.fillText(
+      `${textStart} - ${textEnd} Hz`,
+      xMin + (xMax - xMin) / 2,
+      10,
+    );
+  }
 }

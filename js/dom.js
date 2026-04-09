@@ -12,6 +12,7 @@ export function getDomRefs() {
 
   return {
     btnMic: document.getElementById("btn-mic"),
+    btnFreeze: document.getElementById("btn-freeze"),
     statusText: document.getElementById("audio-status"),
     sampleRateText: document.getElementById("sample-rate"),
     channelsText: document.getElementById("audio-channels"),

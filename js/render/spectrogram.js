@@ -276,24 +276,27 @@ export function drawSpectrogram({ dom, frame, state }) {
     currentU8Data = new Uint8Array(bufferLength);
   }
 
-  for (let i = 0; i < bufferLength; i++) {
-    let p = (freqData[i] - minDb) / dbRange;
-    if (p < 0) p = 0;
-    else if (p > 1) p = 1;
-    currentU8Data[i] = p * 255;
-  }
+  if (!state.isFrozen) {
+    for (let i = 0; i < bufferLength; i++) {
+      let p = (freqData[i] - minDb) / dbRange;
+      p = Math.max(0, Math.min(1, p));
+      currentU8Data[i] = Math.floor(p * 255);
+    }
 
-  gl.texSubImage2D(
-    gl.TEXTURE_2D,
-    0,
-    0,
-    headIndex,
-    bufferLength,
-    1,
-    gl.ALPHA,
-    gl.UNSIGNED_BYTE,
-    currentU8Data,
-  );
+    gl.texSubImage2D(
+      gl.TEXTURE_2D,
+      0,
+      0,
+      headIndex,
+      bufferLength,
+      1,
+      gl.ALPHA,
+      gl.UNSIGNED_BYTE,
+      currentU8Data,
+    );
+
+    headIndex = (headIndex + 1) % HISTORY_SIZE;
+  }
 
   const tId = specTheme || "classic";
   if (ws.currentTheme !== tId) {

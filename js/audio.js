@@ -68,6 +68,18 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
 
       state.source = state.audioCtx.createMediaStreamSource(state.stream);
 
+      // Solo (Bandpass Filter) Setup
+      state.bandpassFilter = state.audioCtx.createBiquadFilter();
+      state.bandpassFilter.type = "bandpass";
+      state.bandpassFilter.Q.value = 1;
+
+      state.soloGain = state.audioCtx.createGain();
+      state.soloGain.gain.value = 0; // Muted by default
+
+      state.source.connect(state.bandpassFilter);
+      state.bandpassFilter.connect(state.soloGain);
+      state.soloGain.connect(state.audioCtx.destination);
+
       state.source.connect(state.analyser);
       state.source.connect(state.splitter);
       state.splitter.connect(state.analyserL, 0);

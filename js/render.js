@@ -24,7 +24,6 @@ function buildFrameData({ state, dom }) {
     state.freqDataBuffer = new Float32Array(bufferLength);
   }
   const freqData = state.freqDataBuffer;
-  state.analyser.getFloatFrequencyData(freqData);
 
   if (
     !state.timeDataBuffer ||
@@ -33,7 +32,11 @@ function buildFrameData({ state, dom }) {
     state.timeDataBuffer = new Float32Array(state.analyser.fftSize);
   }
   const timeData = state.timeDataBuffer;
-  state.analyser.getFloatTimeDomainData(timeData);
+
+  if (!state.isFrozen) {
+    state.analyser.getFloatFrequencyData(freqData);
+    state.analyser.getFloatTimeDomainData(timeData);
+  }
 
   const minDb = state.analyser.minDecibels;
   const maxDb = state.analyser.maxDecibels;

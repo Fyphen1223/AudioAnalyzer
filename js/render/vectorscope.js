@@ -78,8 +78,10 @@ export function drawVectorscope({ state, dom }) {
   }
   const timeR = state.timeRBuffer;
 
-  state.analyserL.getFloatTimeDomainData(timeL);
-  state.analyserR.getFloatTimeDomainData(timeR);
+  if (!state.isFrozen) {
+    state.analyserL.getFloatTimeDomainData(timeL);
+    state.analyserR.getFloatTimeDomainData(timeR);
+  }
 
   let dot = 0;
   let normL = 0;

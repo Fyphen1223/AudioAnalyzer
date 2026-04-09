@@ -75,19 +75,74 @@ export function initApp() {
   };
 
   if (dom.canvasSpectrum) {
-    dom.canvasSpectrum.addEventListener("mousemove", (e) => {
+    const el = dom.canvasSpectrum;
+    el.addEventListener("mousemove", (e) => {
       state.mouseX = e.offsetX;
       state.mouseY = e.offsetY;
+      if (state.isDraggingFilter) {
+        state.filterEndX = e.offsetX;
+      }
     });
 
-    dom.canvasSpectrum.addEventListener("mouseenter", () => {
+    el.addEventListener("mouseenter", () => {
       state.isHovering = true;
     });
 
-    dom.canvasSpectrum.addEventListener("mouseleave", () => {
+    el.addEventListener("mouseleave", () => {
       state.isHovering = false;
+      state.isDraggingFilter = false;
+      if (state.soloGain && state.audioCtx) {
+        state.soloGain.gain.cancelScheduledValues(state.audioCtx.currentTime);
+        state.soloGain.gain.setTargetAtTime(
+          0,
+          state.audioCtx.currentTime,
+          0.05,
+        );
+      }
       if (dom.hoverTooltip) {
         dom.hoverTooltip.style.display = "none";
+      }
+    });
+
+    el.addEventListener("mousedown", (e) => {
+      // Only trigger if it's the primary (left) mouse button
+      if (e.button !== 0) return;
+      state.isDraggingFilter = true;
+      state.filterStartX = e.offsetX;
+      state.filterEndX = e.offsetX;
+      if (state.soloGain && state.audioCtx) {
+        state.soloGain.gain.cancelScheduledValues(state.audioCtx.currentTime);
+        state.soloGain.gain.setTargetAtTime(
+          1,
+          state.audioCtx.currentTime,
+          0.05,
+        );
+      }
+    });
+
+    el.addEventListener("mouseup", () => {
+      state.isDraggingFilter = false;
+      if (state.soloGain && state.audioCtx) {
+        state.soloGain.gain.cancelScheduledValues(state.audioCtx.currentTime);
+        state.soloGain.gain.setTargetAtTime(
+          0,
+          state.audioCtx.currentTime,
+          0.05,
+        );
+      }
+    });
+  }
+
+  if (dom.btnFreeze) {
+    dom.btnFreeze.addEventListener("click", () => {
+      state.isFrozen = !state.isFrozen;
+      dom.btnFreeze.textContent = state.isFrozen ? "Unfreeze" : "Freeze";
+      if (state.isFrozen) {
+        dom.btnFreeze.style.background = "#3b82f6";
+        dom.btnFreeze.style.color = "white";
+      } else {
+        dom.btnFreeze.style.background = "";
+        dom.btnFreeze.style.color = "";
       }
     });
   }

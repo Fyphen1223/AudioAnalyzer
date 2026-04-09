@@ -10,9 +10,13 @@ export function createInitialState() {
     animationId: null,
 
     isRunning: false,
+    isFrozen: false,
     mouseX: -1,
     mouseY: -1,
     isHovering: false,
+    filterStartX: null,
+    filterEndX: null,
+    isDraggingFilter: false,
 
     availableMics: [],
 
