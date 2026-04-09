@@ -1,7 +1,7 @@
 {
-  "name": "Audio Analyzer",
-  "short_name": "AA",
-  "description": "Professional WebGL Audio Analyzer",
+  "name": "AeroSpec Audio Analyzer",
+  "short_name": "AeroSpec",
+  "description": "State-of-the-art real-time web-based audio analyzer.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
