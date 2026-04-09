@@ -270,7 +270,7 @@ export function drawSpectrogram({ dom, frame, state }) {
       0,
       gl.ALPHA,
       gl.UNSIGNED_BYTE,
-      null,
+      new Uint8Array(bufferLength * HISTORY_SIZE),
     );
     ws.uploadedBufferLength = bufferLength;
     currentU8Data = new Uint8Array(bufferLength);
@@ -343,8 +343,6 @@ export function drawSpectrogram({ dom, frame, state }) {
   gl.vertexAttribPointer(ws.locs.a_pos, 2, gl.FLOAT, false, 0, 0);
 
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-  headIndex = (headIndex + 1) % HISTORY_SIZE;
 
   const ctxOvl = dom.ctxSpectrogramOverlay;
   if (ctxOvl && dom.canvasSpectrogramOverlay) {

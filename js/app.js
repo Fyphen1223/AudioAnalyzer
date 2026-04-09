@@ -164,6 +164,49 @@ export function initApp() {
     stopAudio: audio.stopAudio,
   });
 
+  if (dom.btnBenchmark) {
+    dom.btnBenchmark.addEventListener("click", () => {
+      state.isBenchmarking = true;
+      dom.btnBenchmark.textContent = "Running...";
+      dom.btnBenchmark.disabled = true;
+
+      setTimeout(() => {
+        let maxFrames = 1000;
+        let t0 = performance.now();
+        for (let i = 0; i < maxFrames; i++) {
+          renderer.draw(performance.now(), true); // Force bypass rate limit
+        }
+        let t1 = performance.now();
+
+        state.isBenchmarking = false;
+        dom.btnBenchmark.textContent = "Benchmark";
+        dom.btnBenchmark.disabled = false;
+
+        let avg = (t1 - t0) / maxFrames;
+        let estimatedFps = Math.floor(1000 / avg);
+
+        let interpretation = "";
+        if (avg < 4) {
+          interpretation =
+            "Status: Excellent.\nThis device is very powerful and can run the application flawlessly at high refresh rates without any lag.";
+        } else if (avg < 8) {
+          interpretation =
+            "Status: Great.\nThis device can easily maintain a smooth 60 FPS experience.";
+        } else if (avg < 15) {
+          interpretation =
+            "Status: Good.\nThis device can manage 60 FPS, but might occasionally drop frames under heavy continuous load.";
+        } else {
+          interpretation =
+            "Status: Suboptimal.\nThis device may struggle to maintain a smooth framerate. Consider reducing the visualizer complexity if you experience lag.";
+        }
+
+        alert(
+          `Benchmark completed:\nRendered ${maxFrames} frames synchronously.\nAverage execution time: ${avg.toFixed(3)} ms per frame.\nEstimated Max FPS: ${estimatedFps}\n\n${interpretation}`,
+        );
+      }, 100); // give UI time to update button text
+    });
+  }
+
   dom.btnMic.addEventListener("click", async () => {
     if (state.isRunning) {
       audio.stopAudio();
@@ -173,6 +216,77 @@ export function initApp() {
   });
 
   window.addEventListener("resize", handleResize);
+
+  const dropZone = document.getElementById("drop-zone");
+  document.body.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    if (dropZone) dropZone.style.display = "flex";
+  });
+
+  document.body.addEventListener("dragleave", (e) => {
+    e.preventDefault();
+    if (e.relatedTarget === null) {
+      if (dropZone) dropZone.style.display = "none";
+    }
+  });
+
+  document.body.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (dropZone) dropZone.style.display = "none";
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      if (
+        file.type.startsWith("audio/") ||
+        file.name.endsWith(".wav") ||
+        file.name.endsWith(".mp3")
+      ) {
+        audio.startAudioFromFile(file);
+      } else {
+        alert("Please drop a valid audio file (e.g. .wav or .mp3)");
+      }
+    }
+  });
+
+  // Setup Fullscreen Buttons
+  const fsBtns = document.querySelectorAll(".btn-fullscreen");
+  console.log("Found fullscreen buttons:", fsBtns.length);
+
+  fsBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const card = btn.closest(".viz-card");
+      if (card) {
+        const isFullscreen = card.classList.toggle("fullscreen-card");
+        btn.innerHTML = isFullscreen ? "&#x2715;" : "&#x26F6;";
+
+        // Ensure zIndex is applied directly to bypass any css specificity issues
+        if (isFullscreen) {
+          card.style.position = "fixed";
+          card.style.top = "0";
+          card.style.left = "0";
+          card.style.width = "100vw";
+          card.style.height = "100vh";
+          card.style.zIndex = "9999";
+          card.style.background = "var(--bg-panel)";
+          card.style.margin = "0";
+          card.style.borderRadius = "0";
+          card.style.padding = "1rem";
+        } else {
+          card.style.position = "";
+          card.style.top = "";
+          card.style.left = "";
+          card.style.width = "";
+          card.style.height = "";
+          card.style.zIndex = "";
+          card.style.background = "";
+          card.style.margin = "";
+          card.style.borderRadius = "";
+          card.style.padding = "";
+        }
+
+        setTimeout(handleResize, 50);
+      }
+    });
+  });
 
   audio.refreshMicrophones();
   handleResize();

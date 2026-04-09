@@ -81,23 +81,29 @@ function buildFrameData({ state, dom }) {
 }
 
 export function createRenderer({ state, dom }) {
-  function draw(timestamp = 0) {
-    state.animationId = requestAnimationFrame(draw);
-
-    state.fpsFrameCount++;
-    if (timestamp - state.lastFpsTime >= 1000) {
-      if (dom.fpsDisplay) {
-        dom.fpsDisplay.textContent = `FPS: ${state.fpsFrameCount}`;
-      }
-      state.fpsFrameCount = 0;
-      state.lastFpsTime = timestamp;
+  function draw(timestamp = 0, force = false) {
+    if (!force) {
+      state.animationId = requestAnimationFrame(draw);
     }
 
-    const fpsThreshold = 1000 / (state.config.updateRateFps || 60);
-    if (timestamp - state.lastDrawTime < fpsThreshold) return;
-    state.lastDrawTime = timestamp;
+    if (!force) {
+      state.fpsFrameCount++;
+      if (timestamp - state.lastFpsTime >= 1000) {
+        if (dom.fpsDisplay) {
+          dom.fpsDisplay.textContent = `${state.fpsFrameCount}`;
+        }
+        state.fpsFrameCount = 0;
+        state.lastFpsTime = timestamp;
+      }
+
+      const fpsThreshold = 1000 / (state.config.updateRateFps || 60);
+      if (timestamp - state.lastDrawTime < fpsThreshold) return;
+      state.lastDrawTime = timestamp;
+    }
 
     if (!state.analyser || !dom.ctxSpectrum || !dom.ctxWaveform) return;
+
+    let t0 = performance.now();
 
     const frame = buildFrameData({ state, dom });
 
@@ -105,6 +111,25 @@ export function createRenderer({ state, dom }) {
     drawWaveformAndMeter({ state, dom, frame });
     drawSpectrogram({ dom, frame, state });
     drawVectorscope({ state, dom });
+
+    let t1 = performance.now();
+    let ms = t1 - t0;
+
+    // Average rendering time
+    if (!force && dom.renderTimeDisplay) {
+      state.renderTimes.push(ms);
+      if (state.renderTimes.length > 60) state.renderTimes.shift();
+      if (state.fpsFrameCount % 10 === 0) {
+        // update display every 10 frames
+        let avg =
+          state.renderTimes.reduce((a, b) => a + b, 0) /
+          state.renderTimes.length;
+        dom.renderTimeDisplay.textContent = `Render: ${avg.toFixed(2)} ms`;
+        if (avg < 8) dom.renderTimeDisplay.style.color = "#4ade80";
+        else if (avg < 16) dom.renderTimeDisplay.style.color = "#facc15";
+        else dom.renderTimeDisplay.style.color = "#f87171";
+      }
+    }
   }
 
   return { draw };

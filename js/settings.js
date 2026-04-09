@@ -112,6 +112,42 @@ export function bindSettings({
       state.analyser.maxDecibels = parseFloat(dom.maxDbInput.value);
   });
 
+  if (dom.btnTone) {
+    dom.btnTone.addEventListener("click", () => {
+      state.toneEnabled = !state.toneEnabled;
+      dom.btnTone.textContent = state.toneEnabled
+        ? "Disable Tone"
+        : "Enable Tone";
+      dom.btnTone.style.background = state.toneEnabled ? "#eab308" : "";
+      dom.btnTone.style.color = state.toneEnabled ? "#1e293b" : "";
+      if (dom.toneStatus)
+        dom.toneStatus.style.display = state.toneEnabled ? "block" : "none";
+
+      if (!state.audioCtx && state.toneEnabled) {
+        startAudio(); // Force start if not running
+      } else if (state.audioCtx) {
+        state.updateToneGenerator(state, dom);
+      }
+    });
+
+    [dom.toneType, dom.toneFreq, dom.toneVol, dom.tonePan].forEach((el) => {
+      if (el) {
+        el.addEventListener("input", () => {
+          if (dom.toneVolVal) dom.toneVolVal.textContent = dom.toneVol.value;
+          let p = parseFloat(dom.tonePan.value);
+          if (dom.tonePanVal)
+            dom.tonePanVal.textContent =
+              p === 0
+                ? "Center"
+                : p < 0
+                  ? `L ${(-p).toFixed(2)}`
+                  : `R ${p.toFixed(2)}`;
+          if (state.updateToneGenerator) state.updateToneGenerator(state, dom);
+        });
+      }
+    });
+  }
+
   if (dom.btnClearClips) {
     dom.btnClearClips.addEventListener("click", () => {
       state.eventLogs = [];
@@ -119,6 +155,28 @@ export function bindSettings({
         dom.clipLogContainer.innerHTML =
           '<div style="color: var(--text-muted); text-align: center; padding: 1rem 0;" id="clip-log-empty">No events recorded</div>';
         dom.clipLogEmpty = document.getElementById("clip-log-empty");
+      }
+    });
+  }
+
+  if (dom.micSelect) {
+    dom.micSelect.addEventListener("change", () => {
+      // Re-start audio with new microphone if already running
+      if (state.isRunning) {
+        stopAudio();
+        startAudio();
+      }
+    });
+  }
+
+  if (dom.outSelect) {
+    dom.outSelect.addEventListener("change", async () => {
+      if (state.audioCtx && typeof state.audioCtx.setSinkId === "function") {
+        try {
+          await state.audioCtx.setSinkId(dom.outSelect.value);
+        } catch (e) {
+          console.error("Could not set audio output device", e);
+        }
       }
     });
   }

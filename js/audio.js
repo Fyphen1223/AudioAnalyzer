@@ -3,29 +3,55 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       state.availableMics = devices.filter((d) => d.kind === "audioinput");
+      state.availableOutputs = devices.filter((d) => d.kind === "audiooutput");
 
       const currentVal = dom.micSelect ? dom.micSelect.value : "default";
 
-      if (!dom.micSelect) return;
+      if (dom.micSelect) {
+        dom.micSelect.innerHTML = "";
+        const defaultOpt = document.createElement("option");
+        defaultOpt.value = "default";
+        defaultOpt.textContent = "Default Device";
+        dom.micSelect.appendChild(defaultOpt);
 
-      dom.micSelect.innerHTML = "";
-      const defaultOpt = document.createElement("option");
-      defaultOpt.value = "default";
-      defaultOpt.textContent = "Default Device";
-      dom.micSelect.appendChild(defaultOpt);
+        state.availableMics.forEach((mic, idx) => {
+          if (mic.deviceId === "default" || mic.deviceId === "") return;
+          const opt = document.createElement("option");
+          opt.value = mic.deviceId;
+          opt.textContent = mic.label || `Microphone ${idx + 1}`;
+          dom.micSelect.appendChild(opt);
+        });
 
-      state.availableMics.forEach((mic, idx) => {
-        if (mic.deviceId === "default" || mic.deviceId === "") return;
-        const opt = document.createElement("option");
-        opt.value = mic.deviceId;
-        opt.textContent = mic.label || `Microphone ${idx + 1}`;
-        dom.micSelect.appendChild(opt);
-      });
+        if (
+          Array.from(dom.micSelect.options).some((o) => o.value === currentVal)
+        ) {
+          dom.micSelect.value = currentVal;
+        }
+      }
 
-      if (
-        Array.from(dom.micSelect.options).some((o) => o.value === currentVal)
-      ) {
-        dom.micSelect.value = currentVal;
+      if (dom.outSelect) {
+        const currentOutVal = dom.outSelect.value || "default";
+        dom.outSelect.innerHTML = "";
+        const defaultOutOpt = document.createElement("option");
+        defaultOutOpt.value = "default";
+        defaultOutOpt.textContent = "Default Device";
+        dom.outSelect.appendChild(defaultOutOpt);
+
+        state.availableOutputs.forEach((out, idx) => {
+          if (out.deviceId === "default" || out.deviceId === "") return;
+          const opt = document.createElement("option");
+          opt.value = out.deviceId;
+          opt.textContent = out.label || `Speaker ${idx + 1}`;
+          dom.outSelect.appendChild(opt);
+        });
+
+        if (
+          Array.from(dom.outSelect.options).some(
+            (o) => o.value === currentOutVal,
+          )
+        ) {
+          dom.outSelect.value = currentOutVal;
+        }
       }
     } catch (e) {
       console.log("Could not enumerate devices", e);
@@ -50,6 +76,20 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
       await refreshMicrophones();
 
       state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      // Set output sink if supported and selected
+      if (
+        dom.outSelect &&
+        dom.outSelect.value !== "default" &&
+        typeof state.audioCtx.setSinkId === "function"
+      ) {
+        try {
+          await state.audioCtx.setSinkId(dom.outSelect.value);
+        } catch (e) {
+          console.error("Could not set audio output device", e);
+        }
+      }
+
       state.analyser = state.audioCtx.createAnalyser();
 
       state.splitter = state.audioCtx.createChannelSplitter(2);
@@ -111,6 +151,8 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
       dom.statusText.className = "status-online";
       dom.sampleRateText.textContent = state.audioCtx.sampleRate;
 
+      if (state.updateToneGenerator) state.updateToneGenerator(state, dom);
+
       resizeCanvases();
       draw();
     } catch (err) {
@@ -121,8 +163,110 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
     }
   }
 
+  async function startAudioFromFile(file) {
+    try {
+      if (state.isRunning) {
+        stopAudio();
+      }
+
+      const fileUrl = URL.createObjectURL(file);
+      const audioPlayer = document.getElementById("audio-player");
+      if (audioPlayer) {
+        audioPlayer.src = fileUrl;
+        audioPlayer.style.display = "block";
+        audioPlayer.onplay = () => {
+          if (state.audioCtx.state === "suspended") {
+            state.audioCtx.resume();
+          }
+        };
+      }
+
+      state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      if (
+        dom.outSelect &&
+        dom.outSelect.value !== "default" &&
+        typeof state.audioCtx.setSinkId === "function"
+      ) {
+        try {
+          await state.audioCtx.setSinkId(dom.outSelect.value);
+        } catch (e) {
+          console.error("Could not set audio output device", e);
+        }
+      }
+
+      state.analyser = state.audioCtx.createAnalyser();
+      state.splitter = state.audioCtx.createChannelSplitter(2);
+      state.analyserL = state.audioCtx.createAnalyser();
+      state.analyserR = state.audioCtx.createAnalyser();
+
+      state.analyser.fftSize = parseInt(dom.fftSizeSelect.value, 10);
+      state.analyserL.fftSize = state.analyser.fftSize;
+      state.analyserR.fftSize = state.analyser.fftSize;
+
+      state.analyser.smoothingTimeConstant = parseFloat(
+        dom.smoothingInput.value,
+      );
+      state.analyser.minDecibels = parseFloat(dom.minDbInput.value);
+      state.analyser.maxDecibels = parseFloat(dom.maxDbInput.value);
+
+      state.source = state.audioCtx.createMediaElementSource(audioPlayer);
+
+      state.bandpassFilter = state.audioCtx.createBiquadFilter();
+      state.bandpassFilter.type = "bandpass";
+      state.bandpassFilter.Q.value = 1;
+
+      state.soloGain = state.audioCtx.createGain();
+      state.soloGain.gain.value = 0;
+
+      state.source.connect(state.bandpassFilter);
+      state.bandpassFilter.connect(state.soloGain);
+      state.soloGain.connect(state.audioCtx.destination);
+
+      state.source.connect(state.analyser);
+      state.source.connect(state.splitter);
+      state.splitter.connect(state.analyserL, 0);
+      state.splitter.connect(state.analyserR, 1);
+
+      // Playback source directly connected to destination
+      state.source.connect(state.audioCtx.destination);
+
+      state.isRunning = true;
+      dom.btnMic.textContent = "Stop Microphone (File Playing)";
+      dom.btnMic.classList.add("active");
+      dom.statusText.textContent = "Online - File: " + file.name;
+      dom.statusText.className = "status-online";
+      dom.sampleRateText.textContent = state.audioCtx.sampleRate;
+      dom.channelsText.textContent = "2 (File)";
+      dom.deviceNameText.textContent = "File: " + file.name;
+
+      if (state.updateToneGenerator) state.updateToneGenerator(state, dom);
+
+      resizeCanvases();
+      draw();
+      audioPlayer.play();
+    } catch (err) {
+      console.error("Error playing audio file:", err);
+      alert("Could not play the dropped audio file.");
+    }
+  }
+
   function stopAudio() {
+    const audioPlayer = document.getElementById("audio-player");
+    if (audioPlayer) {
+      audioPlayer.pause();
+      audioPlayer.src = "";
+      audioPlayer.style.display = "none";
+    }
+
     if (state.audioCtx) {
+      if (state.toneOsc) {
+        try {
+          state.toneOsc.stop();
+        } catch (e) {}
+        state.toneOsc.disconnect();
+        state.toneOsc = null;
+      }
       state.audioCtx.close();
     }
     if (state.stream) {
@@ -181,13 +325,59 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
     }
 
     dom.peakFill.style.width = "0%";
-    dom.peakValue.textContent = "-∞ dB";
+    dom.peakValue.textContent = "-\u221E dB";
     dom.peakValue.style.color = "var(--text-muted)";
   }
+
+  state.updateToneGenerator = (s, d) => {
+    if (!s.audioCtx) return;
+
+    if (s.toneEnabled) {
+      if (!s.toneOsc) {
+        s.toneOsc = s.audioCtx.createOscillator();
+        s.toneGain = s.audioCtx.createGain();
+        s.tonePan = s.audioCtx.createStereoPanner();
+
+        s.toneOsc.connect(s.tonePan);
+        s.tonePan.connect(s.toneGain);
+
+        s.toneGain.connect(s.audioCtx.destination);
+
+        s.toneOsc.start();
+      }
+
+      s.toneOsc.type = d.toneType.value || "sine";
+      s.toneOsc.frequency.setTargetAtTime(
+        parseFloat(d.toneFreq.value),
+        s.audioCtx.currentTime,
+        0.05,
+      );
+
+      let panVal = parseFloat(d.tonePan.value);
+      s.tonePan.pan.setTargetAtTime(panVal, s.audioCtx.currentTime, 0.05);
+
+      let db = parseFloat(d.toneVol.value);
+      let linearGain = Math.pow(10, db / 20);
+      s.toneGain.gain.setTargetAtTime(linearGain, s.audioCtx.currentTime, 0.05);
+    } else {
+      if (s.toneOsc) {
+        try {
+          s.toneOsc.stop();
+        } catch (e) {}
+        s.toneOsc.disconnect();
+        s.toneGain.disconnect();
+        s.tonePan.disconnect();
+        s.toneOsc = null;
+        s.toneGain = null;
+        s.tonePan = null;
+      }
+    }
+  };
 
   return {
     refreshMicrophones,
     startAudio,
+    startAudioFromFile,
     stopAudio,
   };
 }

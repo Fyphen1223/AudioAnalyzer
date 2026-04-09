@@ -11,6 +11,8 @@ export function createInitialState() {
 
     isRunning: false,
     isFrozen: false,
+    isBenchmarking: false,
+    renderTimes: [],
     mouseX: -1,
     mouseY: -1,
     isHovering: false,
@@ -18,7 +20,14 @@ export function createInitialState() {
     filterEndX: null,
     isDraggingFilter: false,
 
+    // Tone Generator States
+    toneEnabled: false,
+    toneOsc: null,
+    toneGain: null,
+    tonePan: null,
+
     availableMics: [],
+    availableOutputs: [],
 
     prevPeakValue: -Infinity,
     eventLogs: [],

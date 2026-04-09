@@ -9,6 +9,25 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <div
+      id="drop-zone"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.9);
+        color: #fff;
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: bold;
+        pointer-events: none;
+        border: 4px dashed #3ef;
+      "
+    >
+      Drop Audio File Here
+    </div>
     <div class="app-container">
       <header>
         <div class="header-left">
@@ -17,6 +36,35 @@
           <div style="display: flex; gap: 0.5rem; align-items: center">
             <button id="btn-mic" class="btn">Start Microphone</button>
             <button id="btn-freeze" class="btn">Freeze</button>
+            <button id="btn-benchmark" class="btn" style="background: #475569">
+              Benchmark
+            </button>
+            <audio
+              id="audio-player"
+              controls
+              style="display: none; height: 32px"
+            ></audio>
+            <div
+              id="render-time-display"
+              style="
+                font-family: monospace;
+                margin-left: 1rem;
+                font-size: 0.9rem;
+                color: #94a3b8;
+              "
+            >
+              Render: -- ms
+            </div>
+            <div
+              style="
+                font-family: monospace;
+                margin-left: 1rem;
+                font-size: 0.9rem;
+                color: #94a3b8;
+              "
+            >
+              FPS: <span id="fps-display">--</span>
+            </div>
           </div>
         </div>
       </header>
@@ -48,6 +96,13 @@
             <div class="setting-group">
               <label for="mic-select">Microphone</label>
               <select id="mic-select">
+                <option value="default">Default Device</option>
+              </select>
+            </div>
+
+            <div class="setting-group">
+              <label for="out-select">Output Speaker</label>
+              <select id="out-select">
                 <option value="default">Default Device</option>
               </select>
             </div>
@@ -243,6 +298,92 @@
             </div>
           </div>
 
+          <div class="panel">
+            <h2
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              Test Tone Generator
+              <div
+                id="tone-status"
+                style="
+                  font-size: 0.75rem;
+                  font-weight: normal;
+                  color: #facc15;
+                  display: none;
+                "
+              >
+                (Running)
+              </div>
+            </h2>
+            <div class="setting-group">
+              <button id="btn-tone" class="btn" style="padding: 4px">
+                Enable Tone
+              </button>
+            </div>
+            <div
+              class="setting-group"
+              style="display: flex; gap: 0.5rem; flex-wrap: wrap"
+            >
+              <div style="flex: 1">
+                <label for="tone-type">Waveform</label>
+                <select id="tone-type" style="width: 100%">
+                  <option value="sine">Sine</option>
+                  <option value="sawtooth">Sawtooth</option>
+                  <option value="square">Square</option>
+                  <option value="triangle">Triangle</option>
+                </select>
+              </div>
+              <div style="flex: 1">
+                <label for="tone-freq">Frequency (Hz)</label>
+                <input
+                  type="number"
+                  id="tone-freq"
+                  value="440"
+                  min="1"
+                  max="24000"
+                  style="
+                    width: 100%;
+                    padding: 0.4rem;
+                    background: var(--bg-dark);
+                    color: var(--text-main);
+                    border: 1px solid var(--border);
+                    border-radius: 4px;
+                  "
+                />
+              </div>
+            </div>
+            <div class="setting-group">
+              <label for="tone-vol"
+                >Volume (Gain): <span id="tone-vol-val">-12</span> dB</label
+              >
+              <input
+                type="range"
+                id="tone-vol"
+                min="-80"
+                max="0"
+                step="1"
+                value="-12"
+              />
+            </div>
+            <div class="setting-group">
+              <label for="tone-pan"
+                >Pan: <span id="tone-pan-val">Center</span></label
+              >
+              <input
+                type="range"
+                id="tone-pan"
+                min="-1"
+                max="1"
+                step="0.05"
+                value="0"
+              />
+            </div>
+          </div>
+
           <div class="panel peak-meter-panel">
             <h2 style="display: flex; justify-content: space-between">
               Level Meter
@@ -344,7 +485,6 @@
             <p>Sample Rate: <span id="sample-rate">--</span> Hz</p>
             <p>Channels: <span id="audio-channels">--</span></p>
             <p>Device: <span id="audio-device-name">--</span></p>
-            <p>Effective FPS: <span id="fps-display">--</span></p>
           </div>
         </aside>
 
@@ -362,11 +502,32 @@
         >
           <!-- Top Left: FSA -->
           <div class="viz-card" id="card-fsa">
-            <div class="viz-header">
-              <h3>Frequency Spectrum</h3>
-              <span class="viz-info"
-                >Peak Freq: <span id="peak-freq">--</span> Hz</span
+            <div
+              class="viz-header"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div>
+                <h3>Frequency Spectrum</h3>
+                <span class="viz-info"
+                  >Peak Freq: <span id="peak-freq">--</span> Hz</span
+                >
+              </div>
+              <button
+                class="btn btn-fullscreen"
+                style="
+                  background: none;
+                  border: none;
+                  padding: 0.2rem 0.5rem;
+                  cursor: pointer;
+                  color: white;
+                "
               >
+                &#x26F6;
+              </button>
             </div>
             <div class="canvas-wrapper" style="position: relative">
               <canvas
@@ -404,8 +565,27 @@
 
           <!-- Bottom Left: Spectrogram -->
           <div class="viz-card" id="card-spectrogram">
-            <div class="viz-header">
+            <div
+              class="viz-header"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
               <h3>Spectrogram</h3>
+              <button
+                class="btn btn-fullscreen"
+                style="
+                  background: none;
+                  border: none;
+                  padding: 0.2rem 0.5rem;
+                  cursor: pointer;
+                  color: white;
+                "
+              >
+                &#x26F6;
+              </button>
             </div>
             <div class="canvas-wrapper" style="position: relative">
               <canvas
@@ -434,8 +614,27 @@
 
           <!-- Top Right: Oscilloscope -->
           <div class="viz-card" id="card-oscilloscope">
-            <div class="viz-header">
+            <div
+              class="viz-header"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
               <h3>Oscilloscope</h3>
+              <button
+                class="btn btn-fullscreen"
+                style="
+                  background: none;
+                  border: none;
+                  padding: 0.2rem 0.5rem;
+                  cursor: pointer;
+                  color: white;
+                "
+              >
+                &#x26F6;
+              </button>
             </div>
             <div class="canvas-wrapper">
               <canvas id="canvas-waveform"></canvas>
@@ -445,8 +644,27 @@
 
           <!-- Bottom Right: Vectorscope & Phase -->
           <div class="viz-card" id="card-vectorscope">
-            <div class="viz-header">
+            <div
+              class="viz-header"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
               <h3>Vectorscope (Stereo Field & Phase)</h3>
+              <button
+                class="btn btn-fullscreen"
+                style="
+                  background: none;
+                  border: none;
+                  padding: 0.2rem 0.5rem;
+                  cursor: pointer;
+                  color: white;
+                "
+              >
+                &#x26F6;
+              </button>
             </div>
             <div
               class="canvas-wrapper"
