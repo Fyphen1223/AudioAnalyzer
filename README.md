@@ -30,7 +30,7 @@ AeroSpec is a web-based, real-time, high-precision audio analysis tool that requ
 
 ### ⚙️ Advanced Settings
 
-- Adjustable FFT Sizes (from 512 up to 8192 for extreme engine resolution).
+- Adjustable FFT Sizes (from 512 up to 32768 for extreme engine resolution).
 - Smoothing Time Constant controls.
 - Custom min/max Decibel (dB) limits.
 - Linear and Logarithmic scale toggles.
