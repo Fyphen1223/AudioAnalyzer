@@ -196,25 +196,17 @@ export function initApp() {
         dom.btnModemRx.classList.add("active");
         dom.modemStatus.style.display = "block";
         state.modemMode = dom.modemMode.value;
-        if (state.analyser && state.analyser.fftSize < 8192) {
-          dom.modemFftWarning.style.display = "block";
-        }
       } else {
         dom.btnModemRx.textContent = "Start Rx";
         dom.btnModemRx.classList.remove("active");
         dom.modemStatus.style.display = "none";
-        dom.modemFftWarning.style.display = "none";
       }
     });
 
     // Check FFT size changes
     dom.fftSizeSelect?.addEventListener("change", () => {
       if (state.modemActive) {
-        if (parseInt(dom.fftSizeSelect.value, 10) < 8192) {
-          dom.modemFftWarning.style.display = "block";
-        } else {
-          dom.modemFftWarning.style.display = "none";
-        }
+        // Warning no longer needed since we use dedicated modemAnalyser
       }
     });
   }

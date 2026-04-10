@@ -41,7 +41,6 @@ export function getDomRefs() {
     toneStatus: document.getElementById("tone-status"),
 
     // FSK Modem
-    modemFftWarning: document.getElementById("modem-fft-warning"),
     btnModemRx: document.getElementById("btn-modem-rx"),
     btnModemTx: document.getElementById("btn-modem-tx"),
     btnModemClear: document.getElementById("btn-modem-clear"),
