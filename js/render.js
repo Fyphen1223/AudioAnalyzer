@@ -2,6 +2,7 @@ import { drawSpectrum } from "./render/spectrum.js";
 import { drawWaveformAndMeter } from "./render/waveformMeter.js";
 import { drawSpectrogram } from "./render/spectrogram.js";
 import { drawVectorscope } from "./render/vectorscope.js";
+import { demodulateFrame } from "./modem.js";
 
 function buildFrameData({ state, dom }) {
   const {
@@ -111,6 +112,10 @@ export function createRenderer({ state, dom }) {
     drawWaveformAndMeter({ state, dom, frame });
     drawSpectrogram({ dom, frame, state });
     drawVectorscope({ state, dom });
+
+    if (state.modemActive) {
+      demodulateFrame(state, dom, timestamp, frame.freqData);
+    }
 
     let t1 = performance.now();
     let ms = t1 - t0;

@@ -112,6 +112,21 @@ export function bindSettings({
       state.analyser.maxDecibels = parseFloat(dom.maxDbInput.value);
   });
 
+  if (dom.micGain) {
+    dom.micGain.addEventListener("input", () => {
+      dom.micGainVal.textContent = dom.micGain.value;
+      if (state.micGainNode) {
+        const db = parseFloat(dom.micGain.value);
+        const linear = Math.pow(10, db / 20);
+        state.micGainNode.gain.setTargetAtTime(
+          linear,
+          state.audioCtx.currentTime,
+          0.05,
+        );
+      }
+    });
+  }
+
   if (dom.btnTone) {
     dom.btnTone.addEventListener("click", () => {
       state.toneEnabled = !state.toneEnabled;

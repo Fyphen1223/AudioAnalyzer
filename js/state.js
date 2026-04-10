@@ -26,6 +26,11 @@ export function createInitialState() {
     toneGain: null,
     tonePan: null,
 
+    // FSK Modem
+    modemActive: false,
+    modemMode: "audible",
+    modemRxBuffer: "",
+
     availableMics: [],
     availableOutputs: [],
 

@@ -4,6 +4,7 @@ import { resizeCanvases } from "./layout.js";
 import { createAudioController } from "./audio.js";
 import { bindSettings } from "./settings.js";
 import { createRenderer } from "./render.js";
+import { startTransmission } from "./modem.js";
 
 export function initApp() {
   const dom = getDomRefs();
@@ -163,6 +164,67 @@ export function initApp() {
     startAudio: audio.startAudio,
     stopAudio: audio.stopAudio,
   });
+
+  // FSK Modem Handlers
+  if (dom.btnModemTx) {
+    dom.btnModemTx.addEventListener("click", () => {
+      if (!state.audioCtx || state.audioCtx.state === "suspended") {
+        alert("Please start the microphone or audio first.");
+        return;
+      }
+      const text = dom.modemTxText.value;
+      if (!text) return;
+
+      const mode = dom.modemMode.value;
+      const duration = startTransmission(state, text, mode);
+
+      dom.btnModemTx.disabled = true;
+      dom.btnModemTx.textContent = "Sending...";
+      setTimeout(() => {
+        dom.btnModemTx.disabled = false;
+        dom.btnModemTx.textContent = "Send";
+        dom.modemTxText.value = "";
+      }, duration * 1000);
+    });
+  }
+
+  if (dom.btnModemRx) {
+    dom.btnModemRx.addEventListener("click", () => {
+      state.modemActive = !state.modemActive;
+      if (state.modemActive) {
+        dom.btnModemRx.textContent = "Stop Rx";
+        dom.btnModemRx.classList.add("active");
+        dom.modemStatus.style.display = "block";
+        state.modemMode = dom.modemMode.value;
+        if (state.analyser && state.analyser.fftSize < 8192) {
+          dom.modemFftWarning.style.display = "block";
+        }
+      } else {
+        dom.btnModemRx.textContent = "Start Rx";
+        dom.btnModemRx.classList.remove("active");
+        dom.modemStatus.style.display = "none";
+        dom.modemFftWarning.style.display = "none";
+      }
+    });
+
+    // Check FFT size changes
+    dom.fftSizeSelect?.addEventListener("change", () => {
+      if (state.modemActive) {
+        if (parseInt(dom.fftSizeSelect.value, 10) < 8192) {
+          dom.modemFftWarning.style.display = "block";
+        } else {
+          dom.modemFftWarning.style.display = "none";
+        }
+      }
+    });
+  }
+
+  if (dom.btnModemClear) {
+    dom.btnModemClear.addEventListener("click", () => {
+      state.modemRxBuffer = "";
+      dom.modemRxLog.value = "";
+    });
+  }
 
   if (dom.btnBenchmark) {
     dom.btnBenchmark.addEventListener("click", () => {

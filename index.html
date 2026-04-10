@@ -101,6 +101,20 @@
             </div>
 
             <div class="setting-group">
+              <label for="mic-gain"
+                >Microphone Gain: <span id="mic-gain-val">0</span> dB</label
+              >
+              <input
+                type="range"
+                id="mic-gain"
+                min="-24"
+                max="24"
+                step="1"
+                value="0"
+              />
+            </div>
+
+            <div class="setting-group">
               <label for="out-select">Output Speaker</label>
               <select id="out-select">
                 <option value="default">Default Device</option>
@@ -475,6 +489,116 @@
                   No clips recorded
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              FSK Modem (Data over Sound)
+              <div
+                id="modem-status"
+                style="
+                  font-size: 0.75rem;
+                  font-weight: normal;
+                  color: #10b981;
+                  display: none;
+                "
+              >
+                (Receiving)
+              </div>
+            </h2>
+            <div
+              id="modem-fft-warning"
+              style="
+                display: none;
+                padding: 8px;
+                margin-bottom: 12px;
+                background: rgba(220, 38, 38, 0.2);
+                color: #fca5a5;
+                border: 1px solid #ef4444;
+                border-radius: 4px;
+                font-size: 0.85rem;
+              "
+            >
+              ⚠️ 受信精度確保のため、Analyzer Settingsで「FFT
+              Size」を8192以上に設定してください。
+            </div>
+
+            <div
+              class="setting-group"
+              style="display: flex; gap: 0.5rem; flex-wrap: wrap"
+            >
+              <div style="flex: 1">
+                <label for="modem-mode">Frequency Band</label>
+                <select id="modem-mode" style="width: 100%">
+                  <option value="audible">Audible (1.2k/2.2k)</option>
+                  <option value="ultrasonic">Ultrasonic (18k/19k)</option>
+                </select>
+              </div>
+              <div style="flex: 1; display: flex; align-items: flex-end">
+                <button
+                  id="btn-modem-rx"
+                  class="btn"
+                  style="width: 100%; padding: 4px"
+                >
+                  Start Rx
+                </button>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <label for="modem-tx-text">Transmit Text</label>
+              <div style="display: flex; gap: 0.5rem">
+                <input
+                  type="text"
+                  id="modem-tx-text"
+                  placeholder="Type here..."
+                  style="
+                    flex: 1;
+                    padding: 0.4rem;
+                    background: var(--bg-dark);
+                    color: var(--text-main);
+                    border: 1px solid var(--border);
+                    border-radius: 4px;
+                  "
+                />
+                <button id="btn-modem-tx" class="btn" style="padding: 4px 12px">
+                  Send
+                </button>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <label>Received Data</label>
+              <textarea
+                id="modem-rx-log"
+                readonly
+                style="
+                  width: 100%;
+                  height: 60px;
+                  padding: 0.4rem;
+                  background: var(--bg-dark);
+                  color: #facc15;
+                  border: 1px solid var(--border);
+                  border-radius: 4px;
+                  font-family: monospace;
+                  resize: none;
+                "
+                placeholder="Waiting for signal..."
+              ></textarea>
+              <button
+                id="btn-modem-clear"
+                class="btn"
+                style="margin-top: 4px; width: 100%; padding: 4px"
+              >
+                Clear Log
+              </button>
             </div>
           </div>
 

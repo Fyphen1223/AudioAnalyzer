@@ -218,7 +218,15 @@ export function drawSpectrum({ state, dom, frame }) {
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
   // -- CPU Overlay Rendering --
-  ctxOvl.clearRect(0, 0, wSpec, hSpec);
+  ctxOvl.save();
+  ctxOvl.setTransform(1, 0, 0, 1, 0, 0);
+  ctxOvl.clearRect(
+    0,
+    0,
+    dom.canvasSpectrumOverlay.width,
+    dom.canvasSpectrumOverlay.height,
+  );
+  ctxOvl.restore();
 
   const howlingEnabled = dom.howlingWarning !== null;
   let peaks = [];

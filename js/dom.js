@@ -28,6 +28,8 @@ export function getDomRefs() {
     maxDbInput: document.getElementById("max-db"),
     maxDbVal: document.getElementById("max-db-val"),
     micSelect: document.getElementById("mic-select"),
+    micGain: document.getElementById("mic-gain"),
+    micGainVal: document.getElementById("mic-gain-val"),
     outSelect: document.getElementById("out-select"),
     btnTone: document.getElementById("btn-tone"),
     toneType: document.getElementById("tone-type"),
@@ -37,6 +39,17 @@ export function getDomRefs() {
     tonePan: document.getElementById("tone-pan"),
     tonePanVal: document.getElementById("tone-pan-val"),
     toneStatus: document.getElementById("tone-status"),
+
+    // FSK Modem
+    modemFftWarning: document.getElementById("modem-fft-warning"),
+    btnModemRx: document.getElementById("btn-modem-rx"),
+    btnModemTx: document.getElementById("btn-modem-tx"),
+    btnModemClear: document.getElementById("btn-modem-clear"),
+    modemMode: document.getElementById("modem-mode"),
+    modemTxText: document.getElementById("modem-tx-text"),
+    modemRxLog: document.getElementById("modem-rx-log"),
+    modemStatus: document.getElementById("modem-status"),
+
     btnBenchmark: document.getElementById("btn-benchmark"),
     renderTimeDisplay: document.getElementById("render-time-display"),
     updateRateSelect: document.getElementById("update-rate"),

@@ -108,6 +108,12 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
 
       state.source = state.audioCtx.createMediaStreamSource(state.stream);
 
+      state.micGainNode = state.audioCtx.createGain();
+      const initialDb = dom.micGain ? parseFloat(dom.micGain.value) : 0;
+      state.micGainNode.gain.value = Math.pow(10, initialDb / 20);
+
+      state.source.connect(state.micGainNode);
+
       // Solo (Bandpass Filter) Setup
       state.bandpassFilter = state.audioCtx.createBiquadFilter();
       state.bandpassFilter.type = "bandpass";
@@ -116,12 +122,12 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
       state.soloGain = state.audioCtx.createGain();
       state.soloGain.gain.value = 0; // Muted by default
 
-      state.source.connect(state.bandpassFilter);
+      state.micGainNode.connect(state.bandpassFilter);
       state.bandpassFilter.connect(state.soloGain);
       state.soloGain.connect(state.audioCtx.destination);
 
-      state.source.connect(state.analyser);
-      state.source.connect(state.splitter);
+      state.micGainNode.connect(state.analyser);
+      state.micGainNode.connect(state.splitter);
       state.splitter.connect(state.analyserL, 0);
 
       let channelCount = 1;
@@ -212,6 +218,12 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
 
       state.source = state.audioCtx.createMediaElementSource(audioPlayer);
 
+      state.micGainNode = state.audioCtx.createGain();
+      const initialDb = dom.micGain ? parseFloat(dom.micGain.value) : 0;
+      state.micGainNode.gain.value = Math.pow(10, initialDb / 20);
+
+      state.source.connect(state.micGainNode);
+
       state.bandpassFilter = state.audioCtx.createBiquadFilter();
       state.bandpassFilter.type = "bandpass";
       state.bandpassFilter.Q.value = 1;
@@ -219,17 +231,17 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
       state.soloGain = state.audioCtx.createGain();
       state.soloGain.gain.value = 0;
 
-      state.source.connect(state.bandpassFilter);
+      state.micGainNode.connect(state.bandpassFilter);
       state.bandpassFilter.connect(state.soloGain);
       state.soloGain.connect(state.audioCtx.destination);
 
-      state.source.connect(state.analyser);
-      state.source.connect(state.splitter);
+      state.micGainNode.connect(state.analyser);
+      state.micGainNode.connect(state.splitter);
       state.splitter.connect(state.analyserL, 0);
       state.splitter.connect(state.analyserR, 1);
 
       // Playback source directly connected to destination
-      state.source.connect(state.audioCtx.destination);
+      state.micGainNode.connect(state.audioCtx.destination);
 
       state.isRunning = true;
       dom.btnMic.textContent = "Stop Microphone (File Playing)";
@@ -343,6 +355,7 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
 
         s.toneGain.connect(s.audioCtx.destination);
 
+        s.toneOsc.frequency.value = parseFloat(d.toneFreq.value);
         s.toneOsc.start();
       }
 
