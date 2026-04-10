@@ -86,8 +86,8 @@ export function startTransmission(state, text, mode, volDb = -12) {
   return totalTime + T - state.audioCtx.currentTime;
 }
 
-export function demodulateFrame(state, dom, timestamp, freqData) {
-  if (!state.audioCtx) return;
+export function demodulateFrame(state, dom, timestamp) {
+  if (!state.audioCtx || !state.modemAnalyser) return;
 
   if (state.modemRxBuffer === "" && rxState.history.length > 0) {
     rxState.history = [];
@@ -98,13 +98,19 @@ export function demodulateFrame(state, dom, timestamp, freqData) {
   const freqs = MODEM_CONFIG.freqs[mode];
   const T = 1.0 / MODEM_CONFIG.baudRate;
 
-  const bufferLength = state.analyser.frequencyBinCount;
+  const bufferLength = state.modemAnalyser.frequencyBinCount;
   const hzPerBin = state.audioCtx.sampleRate / 2 / bufferLength;
+
+  if (!state.modemFreqData || state.modemFreqData.length !== bufferLength) {
+    state.modemFreqData = new Float32Array(bufferLength);
+  }
+  const freqData = state.modemFreqData;
+  state.modemAnalyser.getFloatFrequencyData(freqData);
 
   const binSpace = Math.round(freqs.space / hzPerBin);
   const binMark = Math.round(freqs.mark / hzPerBin);
-  const searchBins = Math.ceil(50 / hzPerBin); // ±50Hz tolerance window
-  const noiseBins = Math.ceil(300 / hzPerBin); // ±300Hz surrounding noise context
+  const searchBins = Math.max(1, Math.ceil(50 / hzPerBin)); // ±50Hz tolerance window
+  const noiseBins = Math.max(3, Math.ceil(300 / hzPerBin)); // ±300Hz surrounding noise context
 
   // Look around the target bin for max energy and the surrounding noise floor
   const getSignalAndNoise = (centerBin) => {
@@ -126,7 +132,7 @@ export function demodulateFrame(state, dom, timestamp, freqData) {
   const mark = getSignalAndNoise(binMark);
 
   // Dynamic strict thresholding to ignore room noise and typing
-  const ABS_THRESH = state.analyser ? state.analyser.minDecibels + 20 : -80; // 20dB above noise floor of analyzer
+  const ABS_THRESH = state.modemAnalyser.minDecibels + 15;
   const SNR_THRESH = 10; // Peak must be 10dB louder than its surrounding ±300Hz noise
 
   const isSpaceValid =

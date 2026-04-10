@@ -113,8 +113,8 @@ export function createRenderer({ state, dom }) {
     drawSpectrogram({ dom, frame, state });
     drawVectorscope({ state, dom });
 
-    if (state.modemActive) {
-      demodulateFrame(state, dom, timestamp, frame.freqData);
+    if (state.modemActive && state.modemAnalyser) {
+      demodulateFrame(state, dom, timestamp);
     }
 
     let t1 = performance.now();

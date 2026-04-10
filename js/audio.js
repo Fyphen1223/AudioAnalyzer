@@ -106,6 +106,13 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
       state.analyser.minDecibels = parseFloat(dom.minDbInput.value);
       state.analyser.maxDecibels = parseFloat(dom.maxDbInput.value);
 
+      // Dedicated FSK Modem analyzer (fast and low res avoids smoothing issues)
+      state.modemAnalyser = state.audioCtx.createAnalyser();
+      state.modemAnalyser.fftSize = 1024;
+      state.modemAnalyser.smoothingTimeConstant = 0.0; // Essential for fast FSK!
+      state.modemAnalyser.minDecibels = -100;
+      state.modemAnalyser.maxDecibels = 0;
+
       state.source = state.audioCtx.createMediaStreamSource(state.stream);
 
       state.micGainNode = state.audioCtx.createGain();
@@ -127,6 +134,7 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
       state.soloGain.connect(state.audioCtx.destination);
 
       state.micGainNode.connect(state.analyser);
+      state.micGainNode.connect(state.modemAnalyser);
       state.micGainNode.connect(state.splitter);
       state.splitter.connect(state.analyserL, 0);
 
@@ -216,6 +224,13 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
       state.analyser.minDecibels = parseFloat(dom.minDbInput.value);
       state.analyser.maxDecibels = parseFloat(dom.maxDbInput.value);
 
+      // Dedicated FSK Modem analyzer
+      state.modemAnalyser = state.audioCtx.createAnalyser();
+      state.modemAnalyser.fftSize = 1024;
+      state.modemAnalyser.smoothingTimeConstant = 0.0;
+      state.modemAnalyser.minDecibels = -100;
+      state.modemAnalyser.maxDecibels = 0;
+
       state.source = state.audioCtx.createMediaElementSource(audioPlayer);
 
       state.micGainNode = state.audioCtx.createGain();
@@ -236,6 +251,7 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
       state.soloGain.connect(state.audioCtx.destination);
 
       state.micGainNode.connect(state.analyser);
+      state.micGainNode.connect(state.modemAnalyser);
       state.micGainNode.connect(state.splitter);
       state.splitter.connect(state.analyserL, 0);
       state.splitter.connect(state.analyserR, 1);
