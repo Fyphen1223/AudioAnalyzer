@@ -52,6 +52,10 @@ export function getDomRefs() {
     modemVol: document.getElementById("modem-vol"),
     modemVolVal: document.getElementById("modem-vol-val"),
 
+    // Spectrogram Drawer
+    specDrawText: document.getElementById("spec-draw-text"),
+    btnSpecDraw: document.getElementById("btn-spec-draw"),
+
     btnBenchmark: document.getElementById("btn-benchmark"),
     renderTimeDisplay: document.getElementById("render-time-display"),
     updateRateSelect: document.getElementById("update-rate"),

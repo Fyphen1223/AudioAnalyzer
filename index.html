@@ -616,8 +616,47 @@
             </div>
           </div>
 
+          <div class="panel">
+            <h2>Spectrogram Drawer</h2>
+            <div class="setting-group">
+              <label for="spec-draw-text">Draw Text on Spectrogram</label>
+              <div style="display: flex; gap: 0.5rem">
+                <input
+                  type="text"
+                  id="spec-draw-text"
+                  placeholder="Hello!"
+                  style="
+                    flex: 1;
+                    padding: 0.4rem;
+                    background: var(--bg-dark);
+                    color: var(--text-main);
+                    border: 1px solid var(--border);
+                    border-radius: 4px;
+                  "
+                />
+                <button
+                  id="btn-spec-draw"
+                  class="btn"
+                  style="padding: 4px 12px"
+                >
+                  Play
+                </button>
+              </div>
+              <p
+                style="
+                  font-size: 0.75rem;
+                  color: var(--text-muted);
+                  margin-top: 4px;
+                "
+              >
+                * Set Frequency Scale to Linear for best results!
+              </p>
+            </div>
+          </div>
+
           <div class="panel info-panel">
             <h2>Microphone & Render Info</h2>
+
             <p>
               Status:
               <span id="audio-status" class="status-offline">Offline</span>

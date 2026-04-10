@@ -5,6 +5,7 @@ import { createAudioController } from "./audio.js";
 import { bindSettings } from "./settings.js";
 import { createRenderer } from "./render.js";
 import { startTransmission } from "./modem.js";
+import { drawTextToAudioBuffer } from "./spectrogramDraw.js";
 
 export function initApp() {
   const dom = getDomRefs();
@@ -226,6 +227,43 @@ export function initApp() {
     dom.modemVol.addEventListener("input", () => {
       if (dom.modemVolVal) {
         dom.modemVolVal.textContent = dom.modemVol.value;
+      }
+    });
+  }
+
+  if (dom.btnSpecDraw) {
+    dom.btnSpecDraw.addEventListener("click", async () => {
+      if (!state.audioCtx || state.audioCtx.state === "suspended") {
+        alert("Please start the microphone or audio first.");
+        return;
+      }
+      const text = dom.specDrawText?.value;
+      if (!text) return;
+
+      dom.btnSpecDraw.disabled = true;
+      dom.btnSpecDraw.textContent = "Generating...";
+
+      try {
+        const { buffer, duration } = await drawTextToAudioBuffer(
+          state.audioCtx,
+          text,
+        );
+
+        const source = state.audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(state.audioCtx.destination);
+        source.start();
+
+        dom.btnSpecDraw.textContent = "Playing...";
+        setTimeout(() => {
+          dom.btnSpecDraw.disabled = false;
+          dom.btnSpecDraw.textContent = "Play";
+        }, duration * 1000);
+      } catch (err) {
+        console.error(err);
+        dom.btnSpecDraw.disabled = false;
+        dom.btnSpecDraw.textContent = "Play";
+        alert("Failed to generate audio.");
       }
     });
   }
