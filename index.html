@@ -521,7 +521,13 @@
               <div style="flex: 1">
                 <label for="modem-mode">Frequency Band</label>
                 <select id="modem-mode" style="width: 100%">
-                  <option value="audible">Audible (1.2k/2.2k)</option>
+                  <option value="low">Low Pitch (300/700)</option>
+                  <option value="audible" selected>Audible (1.2k/2.2k)</option>
+                  <option value="mid">Mid Pitch (4k/5k)</option>
+                  <option value="high">High Pitch (10k/12k)</option>
+                  <option value="near_ultrasonic">
+                    Near Ultrasonic (15k/16k)
+                  </option>
                   <option value="ultrasonic">Ultrasonic (18k/19k)</option>
                   <option value="extreme">Extreme Ultrasonic (20k/21k)</option>
                 </select>

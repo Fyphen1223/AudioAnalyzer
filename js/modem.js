@@ -2,7 +2,11 @@
 export const MODEM_CONFIG = {
   baudRate: 20, // increased base accuracy slightly (used as fallback)
   freqs: {
-    audible: { space: 1200, mark: 2200 },
+    low: { space: 300, mark: 700 }, // deep bass / low pitched
+    audible: { space: 1200, mark: 2200 }, // classic bell 202
+    mid: { space: 4000, mark: 5000 },
+    high: { space: 10000, mark: 12000 },
+    near_ultrasonic: { space: 15000, mark: 16000 },
     ultrasonic: { space: 18000, mark: 19000 },
     extreme: { space: 20000, mark: 21000 },
   },
@@ -134,7 +138,8 @@ export function demodulateFrame(state, dom, timestamp) {
 
   // Dynamic strict thresholding to ignore room noise and typing
   const ABS_THRESH = state.modemAnalyser.minDecibels + 10; // lowered for poor mic response
-  const SNR_THRESH = mode === "audible" ? 10 : 4; // ultrasonic often has weak SNR due to hardware roll-off
+  const isHighFreq = freqs.space >= 15000;
+  const SNR_THRESH = isHighFreq ? 4 : 10; // high frequencies often have weak SNR due to hardware roll-off
 
   const isSpaceValid =
     space.peak > ABS_THRESH && space.peak > space.noiseMax + SNR_THRESH;
@@ -142,13 +147,11 @@ export function demodulateFrame(state, dom, timestamp) {
     mark.peak > ABS_THRESH && mark.peak > mark.noiseMax + SNR_THRESH;
 
   let currentSymbol = null; // null = noise, 0 = space, 1 = mark
+  const diffRequired = isHighFreq ? 2 : 5;
 
-  if (isMarkValid && space.peak < mark.peak - (mode === "audible" ? 5 : 2)) {
+  if (isMarkValid && space.peak < mark.peak - diffRequired) {
     currentSymbol = 1;
-  } else if (
-    isSpaceValid &&
-    mark.peak < space.peak - (mode === "audible" ? 5 : 2)
-  ) {
+  } else if (isSpaceValid && mark.peak < space.peak - diffRequired) {
     currentSymbol = 0;
   }
 
