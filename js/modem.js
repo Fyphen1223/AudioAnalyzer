@@ -4,6 +4,7 @@ export const MODEM_CONFIG = {
   freqs: {
     audible: { space: 1200, mark: 2200 },
     ultrasonic: { space: 18000, mark: 19000 },
+    extreme: { space: 20000, mark: 21000 },
   },
   thresholdDb: -60, // basic detection threshold
 };
