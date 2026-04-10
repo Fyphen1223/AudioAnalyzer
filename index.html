@@ -619,8 +619,43 @@
           <div class="panel">
             <h2>Spectrogram Drawer</h2>
             <div class="setting-group">
-              <label for="spec-draw-text">Draw Text on Spectrogram</label>
-              <div style="display: flex; gap: 0.5rem">
+              <div
+                style="
+                  display: flex;
+                  gap: 0.5rem;
+                  justify-content: space-between;
+                "
+              >
+                <label for="spec-draw-text">Draw Text on Spectrogram</label>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.2rem;
+                    font-size: 0.8rem;
+                    color: var(--text-muted);
+                  "
+                >
+                  Speed:
+                  <select
+                    id="spec-draw-speed"
+                    style="
+                      padding: 2px;
+                      font-size: 0.75rem;
+                      background: var(--bg-dark);
+                      color: var(--text-main);
+                      border: 1px solid var(--border);
+                      border-radius: 3px;
+                    "
+                  >
+                    <option value="0.1">Slow (100ms)</option>
+                    <option value="0.05" selected>Normal (50ms)</option>
+                    <option value="0.02">Fast (20ms)</option>
+                    <option value="0.01">Very Fast (10ms)</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.2rem">
                 <input
                   type="text"
                   id="spec-draw-text"

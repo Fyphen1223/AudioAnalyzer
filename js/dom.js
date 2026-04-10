@@ -54,6 +54,7 @@ export function getDomRefs() {
 
     // Spectrogram Drawer
     specDrawText: document.getElementById("spec-draw-text"),
+    specDrawSpeed: document.getElementById("spec-draw-speed"),
     btnSpecDraw: document.getElementById("btn-spec-draw"),
 
     btnBenchmark: document.getElementById("btn-benchmark"),

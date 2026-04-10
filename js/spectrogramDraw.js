@@ -1,7 +1,10 @@
-export async function drawTextToAudioBuffer(audioCtx, text) {
+export async function drawTextToAudioBuffer(
+  audioCtx,
+  text,
+  colDuration = 0.05,
+) {
   const minFreq = 1000;
   const maxFreq = 15000;
-  const colDuration = 0.05; // 50ms per column
   const sampleRate = audioCtx.sampleRate;
 
   // Use a canvas to draw the text

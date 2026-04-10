@@ -244,9 +244,13 @@ export function initApp() {
       dom.btnSpecDraw.textContent = "Generating...";
 
       try {
+        const colDuration = dom.specDrawSpeed
+          ? parseFloat(dom.specDrawSpeed.value)
+          : 0.05;
         const { buffer, duration } = await drawTextToAudioBuffer(
           state.audioCtx,
           text,
+          colDuration,
         );
 
         const source = state.audioCtx.createBufferSource();
