@@ -575,6 +575,20 @@
             </div>
 
             <div class="setting-group">
+              <label for="modem-vol"
+                >Tx Volume (Gain): <span id="modem-vol-val">-12</span> dB</label
+              >
+              <input
+                type="range"
+                id="modem-vol"
+                min="-60"
+                max="0"
+                step="1"
+                value="-12"
+              />
+            </div>
+
+            <div class="setting-group">
               <label>Received Data</label>
               <textarea
                 id="modem-rx-log"

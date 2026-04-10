@@ -50,12 +50,17 @@ let rxState = {
   startTime: 0,
 };
 
-export function startTransmission(state, text, mode) {
+export function startTransmission(state, text, mode, volDb = -12) {
   if (!state.audioCtx) return;
   const bits = encodeTextToBits(text);
   const T = 1.0 / MODEM_CONFIG.baudRate;
 
   const osc = state.audioCtx.createOscillator();
+  const gainNode = state.audioCtx.createGain();
+
+  const linearGain = Math.pow(10, volDb / 20);
+  gainNode.gain.value = linearGain;
+
   const T0 = state.audioCtx.currentTime + 0.1;
 
   const freqs = MODEM_CONFIG.freqs[mode];
@@ -72,7 +77,9 @@ export function startTransmission(state, text, mode) {
   // Return to idle MARK for 1 bit, then stop
   osc.frequency.setValueAtTime(freqs.mark, totalTime);
 
-  osc.connect(state.audioCtx.destination); // Play directly
+  osc.connect(gainNode);
+  gainNode.connect(state.audioCtx.destination); // Play through gain node
+
   osc.start(T0);
   osc.stop(totalTime + T);
 
@@ -96,11 +103,12 @@ export function demodulateFrame(state, dom, timestamp, freqData) {
 
   const binSpace = Math.round(freqs.space / hzPerBin);
   const binMark = Math.round(freqs.mark / hzPerBin);
+  const searchBins = Math.ceil(50 / hzPerBin); // ±50Hz tolerance window
 
   // Look around the target bin for max energy
   const getEnergy = (centerBin) => {
     let max = -Infinity;
-    for (let i = centerBin - 2; i <= centerBin + 2; i++) {
+    for (let i = centerBin - searchBins; i <= centerBin + searchBins; i++) {
       if (i >= 0 && i < bufferLength) {
         if (freqData[i] > max) max = freqData[i];
       }
@@ -111,15 +119,27 @@ export function demodulateFrame(state, dom, timestamp, freqData) {
   const eSpace = getEnergy(binSpace);
   const eMark = getEnergy(binMark);
 
-  // Simple hard threshold + differential check
-  const threshold = -75; // dB
+  // Dynamic threshold based on minDecibels, plus a small gap between mark and space
+  const threshold = state.analyser ? state.analyser.minDecibels + 10 : -80;
   let currentSymbol = null; // null = noise, 0 = space, 1 = mark
 
-  if (eMark > threshold || eSpace > threshold) {
-    if (eMark > eSpace + 5) {
-      currentSymbol = 1;
-    } else if (eSpace > eMark + 5) {
-      currentSymbol = 0;
+  if (eMark > eSpace + 3 && eMark > threshold) {
+    currentSymbol = 1;
+  } else if (eSpace > eMark + 3 && eSpace > threshold) {
+    currentSymbol = 0;
+  }
+
+  // Update UI status to show if a carrier is detected
+  if (dom.modemStatus) {
+    if (currentSymbol !== null && rxState.state === "IDLE") {
+      dom.modemStatus.textContent = "(Carrier Detect)";
+      dom.modemStatus.style.color = "#facc15"; // yellow
+    } else if (rxState.state !== "IDLE") {
+      dom.modemStatus.textContent = "(Receiving...)";
+      dom.modemStatus.style.color = "#10b981"; // green
+    } else {
+      dom.modemStatus.textContent = "(Listening)";
+      dom.modemStatus.style.color = "var(--text-muted)";
     }
   }
 
@@ -156,7 +176,11 @@ export function demodulateFrame(state, dom, timestamp, freqData) {
         rxState.history.push(rxState.currentByte);
         try {
           const decoder = new TextDecoder("utf-8");
-          const str = decoder.decode(new Uint8Array(rxState.history));
+          let str = decoder.decode(new Uint8Array(rxState.history));
+
+          // Replace replacement character with [Unknown]
+          str = str.replace(/\uFFFD/g, "[Unknown]");
+
           state.modemRxBuffer = str;
           if (dom.modemRxLog) {
             dom.modemRxLog.value = state.modemRxBuffer;

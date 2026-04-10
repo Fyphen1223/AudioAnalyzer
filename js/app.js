@@ -176,14 +176,14 @@ export function initApp() {
       if (!text) return;
 
       const mode = dom.modemMode.value;
-      const duration = startTransmission(state, text, mode);
+      const volDb = dom.modemVol ? parseFloat(dom.modemVol.value) : -12;
+      const duration = startTransmission(state, text, mode, volDb);
 
       dom.btnModemTx.disabled = true;
       dom.btnModemTx.textContent = "Sending...";
       setTimeout(() => {
         dom.btnModemTx.disabled = false;
         dom.btnModemTx.textContent = "Send";
-        dom.modemTxText.value = "";
       }, duration * 1000);
     });
   }
@@ -223,6 +223,14 @@ export function initApp() {
     dom.btnModemClear.addEventListener("click", () => {
       state.modemRxBuffer = "";
       dom.modemRxLog.value = "";
+    });
+  }
+
+  if (dom.modemVol) {
+    dom.modemVol.addEventListener("input", () => {
+      if (dom.modemVolVal) {
+        dom.modemVolVal.textContent = dom.modemVol.value;
+      }
     });
   }
 

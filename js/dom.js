@@ -49,6 +49,8 @@ export function getDomRefs() {
     modemTxText: document.getElementById("modem-tx-text"),
     modemRxLog: document.getElementById("modem-rx-log"),
     modemStatus: document.getElementById("modem-status"),
+    modemVol: document.getElementById("modem-vol"),
+    modemVolVal: document.getElementById("modem-vol-val"),
 
     btnBenchmark: document.getElementById("btn-benchmark"),
     renderTimeDisplay: document.getElementById("render-time-display"),
