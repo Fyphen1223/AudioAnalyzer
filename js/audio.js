@@ -108,9 +108,9 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
 
       // Dedicated FSK Modem analyzer (fast and low res avoids smoothing issues)
       state.modemAnalyser = state.audioCtx.createAnalyser();
-      state.modemAnalyser.fftSize = 1024;
+      state.modemAnalyser.fftSize = 2048; // Increased from 1024 for narrower frequency bins (better SNR for high pitches)
       state.modemAnalyser.smoothingTimeConstant = 0.0; // Essential for fast FSK!
-      state.modemAnalyser.minDecibels = -100;
+      state.modemAnalyser.minDecibels = -120; // Lower noise floor visibility
       state.modemAnalyser.maxDecibels = 0;
 
       state.source = state.audioCtx.createMediaStreamSource(state.stream);

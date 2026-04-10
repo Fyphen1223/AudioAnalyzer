@@ -1,6 +1,6 @@
 // FSK Modem implementation
 export const MODEM_CONFIG = {
-  baudRate: 10, // bits per second
+  baudRate: 20, // increased base accuracy slightly (used as fallback)
   freqs: {
     audible: { space: 1200, mark: 2200 },
     ultrasonic: { space: 18000, mark: 19000 },
@@ -51,10 +51,10 @@ let rxState = {
   startTime: 0,
 };
 
-export function startTransmission(state, text, mode, volDb = -12) {
+export function startTransmission(state, text, mode, volDb = -12, speed = 20) {
   if (!state.audioCtx) return;
   const bits = encodeTextToBits(text);
-  const T = 1.0 / MODEM_CONFIG.baudRate;
+  const T = 1.0 / speed;
 
   const osc = state.audioCtx.createOscillator();
   const gainNode = state.audioCtx.createGain();
@@ -97,7 +97,7 @@ export function demodulateFrame(state, dom, timestamp) {
   const now = state.audioCtx.currentTime;
   const mode = state.modemMode || "audible";
   const freqs = MODEM_CONFIG.freqs[mode];
-  const T = 1.0 / MODEM_CONFIG.baudRate;
+  const T = 1.0 / (state.modemBaudRate || MODEM_CONFIG.baudRate);
 
   const bufferLength = state.modemAnalyser.frequencyBinCount;
   const hzPerBin = state.audioCtx.sampleRate / 2 / bufferLength;
@@ -133,8 +133,8 @@ export function demodulateFrame(state, dom, timestamp) {
   const mark = getSignalAndNoise(binMark);
 
   // Dynamic strict thresholding to ignore room noise and typing
-  const ABS_THRESH = state.modemAnalyser.minDecibels + 15;
-  const SNR_THRESH = 10; // Peak must be 10dB louder than its surrounding ±300Hz noise
+  const ABS_THRESH = state.modemAnalyser.minDecibels + 10; // lowered for poor mic response
+  const SNR_THRESH = mode === "audible" ? 10 : 4; // ultrasonic often has weak SNR due to hardware roll-off
 
   const isSpaceValid =
     space.peak > ABS_THRESH && space.peak > space.noiseMax + SNR_THRESH;
@@ -143,9 +143,12 @@ export function demodulateFrame(state, dom, timestamp) {
 
   let currentSymbol = null; // null = noise, 0 = space, 1 = mark
 
-  if (isMarkValid && space.peak < mark.peak - 5) {
+  if (isMarkValid && space.peak < mark.peak - (mode === "audible" ? 5 : 2)) {
     currentSymbol = 1;
-  } else if (isSpaceValid && mark.peak < space.peak - 5) {
+  } else if (
+    isSpaceValid &&
+    mark.peak < space.peak - (mode === "audible" ? 5 : 2)
+  ) {
     currentSymbol = 0;
   }
 

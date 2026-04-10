@@ -176,8 +176,9 @@ export function initApp() {
       if (!text) return;
 
       const mode = dom.modemMode.value;
+      const speed = dom.modemSpeed ? parseInt(dom.modemSpeed.value, 10) : 20;
       const volDb = dom.modemVol ? parseFloat(dom.modemVol.value) : -12;
-      const duration = startTransmission(state, text, mode, volDb);
+      const duration = startTransmission(state, text, mode, volDb, speed);
 
       dom.btnModemTx.disabled = true;
       dom.btnModemTx.textContent = "Sending...";
@@ -196,6 +197,9 @@ export function initApp() {
         dom.btnModemRx.classList.add("active");
         dom.modemStatus.style.display = "block";
         state.modemMode = dom.modemMode.value;
+        state.modemBaudRate = dom.modemSpeed
+          ? parseInt(dom.modemSpeed.value, 10)
+          : 20;
       } else {
         dom.btnModemRx.textContent = "Start Rx";
         dom.btnModemRx.classList.remove("active");

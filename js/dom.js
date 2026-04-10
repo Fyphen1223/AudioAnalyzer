@@ -45,6 +45,7 @@ export function getDomRefs() {
     btnModemTx: document.getElementById("btn-modem-tx"),
     btnModemClear: document.getElementById("btn-modem-clear"),
     modemMode: document.getElementById("modem-mode"),
+
     modemTxText: document.getElementById("modem-tx-text"),
     modemRxLog: document.getElementById("modem-rx-log"),
     modemStatus: document.getElementById("modem-status"),
