@@ -104,28 +104,41 @@ export function demodulateFrame(state, dom, timestamp, freqData) {
   const binSpace = Math.round(freqs.space / hzPerBin);
   const binMark = Math.round(freqs.mark / hzPerBin);
   const searchBins = Math.ceil(50 / hzPerBin); // ±50Hz tolerance window
+  const noiseBins = Math.ceil(300 / hzPerBin); // ±300Hz surrounding noise context
 
-  // Look around the target bin for max energy
-  const getEnergy = (centerBin) => {
-    let max = -Infinity;
-    for (let i = centerBin - searchBins; i <= centerBin + searchBins; i++) {
+  // Look around the target bin for max energy and the surrounding noise floor
+  const getSignalAndNoise = (centerBin) => {
+    let peak = -Infinity;
+    let noiseMax = -Infinity;
+    for (let i = centerBin - noiseBins; i <= centerBin + noiseBins; i++) {
       if (i >= 0 && i < bufferLength) {
-        if (freqData[i] > max) max = freqData[i];
+        if (i >= centerBin - searchBins && i <= centerBin + searchBins) {
+          if (freqData[i] > peak) peak = freqData[i];
+        } else {
+          if (freqData[i] > noiseMax) noiseMax = freqData[i];
+        }
       }
     }
-    return max;
+    return { peak, noiseMax };
   };
 
-  const eSpace = getEnergy(binSpace);
-  const eMark = getEnergy(binMark);
+  const space = getSignalAndNoise(binSpace);
+  const mark = getSignalAndNoise(binMark);
 
-  // Dynamic threshold based on minDecibels, plus a small gap between mark and space
-  const threshold = state.analyser ? state.analyser.minDecibels + 10 : -80;
+  // Dynamic strict thresholding to ignore room noise and typing
+  const ABS_THRESH = state.analyser ? state.analyser.minDecibels + 20 : -80; // 20dB above noise floor of analyzer
+  const SNR_THRESH = 10; // Peak must be 10dB louder than its surrounding ±300Hz noise
+
+  const isSpaceValid =
+    space.peak > ABS_THRESH && space.peak > space.noiseMax + SNR_THRESH;
+  const isMarkValid =
+    mark.peak > ABS_THRESH && mark.peak > mark.noiseMax + SNR_THRESH;
+
   let currentSymbol = null; // null = noise, 0 = space, 1 = mark
 
-  if (eMark > eSpace + 3 && eMark > threshold) {
+  if (isMarkValid && space.peak < mark.peak - 5) {
     currentSymbol = 1;
-  } else if (eSpace > eMark + 3 && eSpace > threshold) {
+  } else if (isSpaceValid && mark.peak < space.peak - 5) {
     currentSymbol = 0;
   }
 
