@@ -233,15 +233,24 @@ export function initApp() {
 
   if (dom.btnSpecDraw) {
     dom.btnSpecDraw.addEventListener("click", async () => {
-      if (!state.audioCtx || state.audioCtx.state === "suspended") {
+      if (!state.audioCtx) {
         alert("Please start the microphone or audio first.");
         return;
       }
+
+      // Ensure context is not blocked (ChromeOS/mobile tight audio policy)
+      if (state.audioCtx.state === "suspended") {
+        await state.audioCtx.resume();
+      }
+
       const text = dom.specDrawText?.value;
       if (!text) return;
 
       dom.btnSpecDraw.disabled = true;
       dom.btnSpecDraw.textContent = "Generating...";
+
+      // Yield briefly to let the browser actually render the button update
+      await new Promise((r) => setTimeout(r, 10));
 
       try {
         const colDuration = dom.specDrawSpeed

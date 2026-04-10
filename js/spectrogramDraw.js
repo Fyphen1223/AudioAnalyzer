@@ -22,6 +22,10 @@ export async function drawTextToAudioBuffer(
   canvas.width = width;
   canvas.height = height;
 
+  // IMPORTANT: Resizing the canvas resets the context state in many browsers!
+  // We must set the font again.
+  ctx.font = "bold 40px sans-serif";
+
   // Background black, text white
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, width, height);
@@ -50,6 +54,11 @@ export async function drawTextToAudioBuffer(
   }
 
   for (let x = 0; x < width; x++) {
+    // Yield every 10 columns to prevent UI freeze on low-end devices like Chromebooks
+    if (x % 10 === 0) {
+      await new Promise((r) => setTimeout(r, 0));
+    }
+
     const sampleStart = Math.floor(x * colDuration * sampleRate);
     const sampleEnd = Math.floor((x + 1) * colDuration * sampleRate);
     const colSamples = sampleEnd - sampleStart;
