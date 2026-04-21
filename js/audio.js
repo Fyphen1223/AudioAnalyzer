@@ -304,6 +304,17 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
     dom.channelsText.textContent = "--";
     dom.deviceNameText.textContent = "--";
     state.isRunning = false;
+    state.feedbackRisk = 0;
+    state.feedbackIsHigh = false;
+    state.feedbackStableFrames = 0;
+    state.feedbackLastFreq = 0;
+    if (state.impulse) {
+      state.impulse.buffer = null;
+      state.impulse.captureRequested = false;
+      state.impulse.capturedAt = null;
+      state.impulse.rt60Ms = null;
+      state.impulse.peak = 0;
+    }
 
     if (state.animationId) {
       cancelAnimationFrame(state.animationId);
@@ -355,6 +366,15 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
     dom.peakFill.style.width = "0%";
     dom.peakValue.textContent = "-\u221E dB";
     dom.peakValue.style.color = "var(--text-muted)";
+
+    if (dom.feedbackWarning) dom.feedbackWarning.style.display = "none";
+    if (dom.feedbackRiskText) dom.feedbackRiskText.textContent = "Low";
+    if (dom.feedbackRiskFill) {
+      dom.feedbackRiskFill.style.width = "0%";
+      dom.feedbackRiskFill.style.backgroundColor = "#10b981";
+    }
+    if (dom.impulseStatus) dom.impulseStatus.textContent = "Waiting";
+    if (dom.impulseRt60) dom.impulseRt60.textContent = "--";
   }
 
   state.updateToneGenerator = (s, d) => {

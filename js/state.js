@@ -36,6 +36,11 @@ export function createInitialState() {
 
     prevPeakValue: -Infinity,
     eventLogs: [],
+    lastHowlingTime: null,
+    feedbackRisk: 0,
+    feedbackStableFrames: 0,
+    feedbackLastFreq: 0,
+    feedbackIsHigh: false,
     lastDrawTime: 0,
     fpsFrameCount: 0,
     lastFpsTime: 0,
@@ -62,6 +67,33 @@ export function createInitialState() {
       hSpecg: 0,
       wVec: 0,
       hVec: 0,
+    },
+
+    noiseProfile: {
+      active: false,
+      startTime: 0,
+      samples: [],
+      currentDb: null,
+      baselineDb: null,
+      trendDbPerMin: 0,
+    },
+
+    calibration: {
+      active: false,
+      step: 0,
+      samples: [],
+      noiseFloorDb: null,
+      nominalPeakDb: null,
+      loudPeakDb: null,
+      recommendedGainDeltaDb: null,
+    },
+
+    impulse: {
+      captureRequested: false,
+      buffer: null,
+      peak: 0,
+      rt60Ms: null,
+      capturedAt: null,
     },
   };
 }

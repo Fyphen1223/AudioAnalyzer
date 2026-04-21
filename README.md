@@ -26,6 +26,10 @@ AeroSpec is a web-based, real-time, high-precision audio analysis tool that requ
 
 - **Test Tone Generator**: Generate Sine, Square, Sawtooth, or Triangle waves. Real-time control of frequency, panning, and gain.
 - **Level Meter**: Independent Left/Right peak level monitoring.
+- **Auto Feedback Detector**: Live feedback-loop risk scoring with high-risk warning.
+- **Noise Floor Profiler**: Tracks baseline system/room noise and trend over time.
+- **Calibration Wizard**: 3-step interface/mic gain staging guidance.
+- **Impulse Response Viewer**: One-click transient capture with quick RT60 estimate.
 - **Performance Benchmark**: Measure your device's rendering performance (FPS and average processing time in ms) to ensure real-time accuracy.
 
 ### ⚙️ Advanced Settings

@@ -65,7 +65,9 @@ export function getDomRefs() {
     freqMaxInput: document.getElementById("freq-max"),
     peakCountInput: document.getElementById("peak-count"),
     peakCountVal: document.getElementById("peak-count-val"),
-    howlingWarning: document.getElementById("howling-warning"),
+    feedbackWarning: document.getElementById("feedback-warning"),
+    feedbackRiskText: document.getElementById("feedback-risk-text"),
+    feedbackRiskFill: document.getElementById("feedback-risk-fill"),
     meteringStandard: document.getElementById("metering-standard"),
 
     peakFill: document.getElementById("peak-fill"),
@@ -76,6 +78,21 @@ export function getDomRefs() {
     peakFreqValue: document.getElementById("peak-freq"),
     correlationValue: document.getElementById("correlation-value"),
     correlationFill: document.getElementById("correlation-fill"),
+    btnNoiseProfile: document.getElementById("btn-noise-profile"),
+    noiseProfileStatus: document.getElementById("noise-profile-status"),
+    noiseProfileCurrent: document.getElementById("noise-profile-current"),
+    noiseProfileBaseline: document.getElementById("noise-profile-baseline"),
+    noiseProfileTrend: document.getElementById("noise-profile-trend"),
+    btnCalibrationStart: document.getElementById("btn-calibration-start"),
+    btnCalibrationNext: document.getElementById("btn-calibration-next"),
+    btnCalibrationReset: document.getElementById("btn-calibration-reset"),
+    calibrationStatus: document.getElementById("calibration-status"),
+    calibrationInstruction: document.getElementById("calibration-instruction"),
+    calibrationResult: document.getElementById("calibration-result"),
+    btnImpulseCapture: document.getElementById("btn-impulse-capture"),
+    impulseStatus: document.getElementById("impulse-status"),
+    impulseRt60: document.getElementById("impulse-rt60"),
+    canvasImpulse: document.getElementById("canvas-impulse"),
 
     canvasSpectrum,
     ctxSpectrum: canvasSpectrum
@@ -108,6 +125,9 @@ export function getDomRefs() {
           preserveDrawingBuffer: false,
         }) ||
         canvasVectorscope.getContext("webgl", { preserveDrawingBuffer: false })
+      : null,
+    ctxImpulse: document.getElementById("canvas-impulse")
+      ? document.getElementById("canvas-impulse").getContext("2d")
       : null,
     canvasVectorscopeOverlay: null, // If needed in future
     ctxVectorscopeOverlay: null,

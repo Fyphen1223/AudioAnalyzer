@@ -101,6 +101,8 @@ export function drawWaveformAndMeter({ state, dom, frame }) {
 
   let currentPeakDb = -Infinity;
   const standard = state.config.meteringStandard || "peak";
+  const rawRms = Math.sqrt(sumSquares / state.analyser.fftSize);
+  const rawRmsDb = rawRms > 0 ? 20 * Math.log10(rawRms) : -Infinity;
 
   if (maxAbs > 0) {
     if (standard === "rms") {
@@ -117,6 +119,20 @@ export function drawWaveformAndMeter({ state, dom, frame }) {
   let truePeakDb = -Infinity;
   if (maxAbs > 0) {
     truePeakDb = 20 * Math.log10(maxAbs);
+  }
+
+  if (state.calibration && state.calibration.active) {
+    if (state.calibration.step === 1 && Number.isFinite(rawRmsDb)) {
+      state.calibration.samples.push(rawRmsDb);
+    } else if (
+      (state.calibration.step === 2 || state.calibration.step === 3) &&
+      Number.isFinite(truePeakDb)
+    ) {
+      state.calibration.samples.push(truePeakDb);
+    }
+    if (dom.calibrationStatus) {
+      dom.calibrationStatus.textContent = `Running step ${state.calibration.step} (${state.calibration.samples.length} samples)`;
+    }
   }
 
   if (currentPeakDb > state.prevPeakValue) {
@@ -137,7 +153,7 @@ export function drawWaveformAndMeter({ state, dom, frame }) {
         dom.clipLogContainer.innerHTML = state.eventLogs
           .map(
             (log) =>
-              `<div style="color: ${log.includes('Howling') ? '#fbbf24' : '#ef4444'}; border-bottom: 1px solid var(--border); padding: 2px 0;">${log}</div>`,
+              `<div style="color: ${log.includes('Howling') || log.includes('Feedback') ? '#fbbf24' : '#ef4444'}; border-bottom: 1px solid var(--border); padding: 2px 0;">${log}</div>`,
           )
           .join("");
       }
