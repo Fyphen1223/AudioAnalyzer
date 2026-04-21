@@ -1,4 +1,4 @@
-name: PRview
+name: PR Preview (robust)
 
 on:
   pull_request:
@@ -13,7 +13,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # --- 基本情報ログ ---
+      - name: Debug event
+        run: |
+          echo "EVENT: ${{ github.event.action }}"
+          echo "PR NUMBER: ${{ github.event.number }}"
+          echo "REPO: ${{ github.repository }}"
 
       # --- デプロイ開始コメント ---
       - name: Comment start
@@ -28,15 +36,33 @@ jobs:
               body: `Deploy started for PR #${pr}...`
             });
 
-      # --- ファイル準備（修正済み） ---
+      # --- ファイル準備（安全コピー） ---
       - name: Prepare files
         if: github.event.action != 'closed'
         run: |
           mkdir out
           rsync -av --exclude=out --exclude=.git --exclude=.github ./ out/
 
+      # --- コピー結果確認 ---
+      - name: Verify files
+        if: github.event.action != 'closed'
+        run: |
+          echo "=== ROOT FILES ==="
+          ls -R
+          echo "=== OUT FILES ==="
+          ls -R out
+
+      # --- index.htmlチェック ---
+      - name: Check index.html
+        if: github.event.action != 'closed'
+        run: |
+          if [ ! -f out/index.html ]; then
+            echo "ERROR: index.html not found in out/"
+            exit 1
+          fi
+
       # --- デプロイ ---
-      - name: Deploy to Pages
+      - name: Deploy to gh-pages
         if: github.event.action != 'closed'
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -44,7 +70,13 @@ jobs:
           publish_dir: ./out
           destination_dir: pr-${{ github.event.number }}
 
-      # --- 完了コメント ---
+      # --- デプロイ後ログ ---
+      - name: Post-deploy info
+        if: github.event.action != 'closed'
+        run: |
+          echo "Deployed to pr-${{ github.event.number }}"
+
+      # --- URLコメント ---
       - name: Comment preview URL
         if: github.event.action != 'closed'
         uses: actions/github-script@v7
@@ -59,7 +91,10 @@ jobs:
               body: `Preview ready:\n${url}`
             });
 
-      # --- PRクローズ時 cleanup ---
+      # =============================
+      # PR CLOSED → CLEANUP
+      # =============================
+
       - name: Checkout gh-pages
         if: github.event.action == 'closed'
         uses: actions/checkout@v4
@@ -69,9 +104,10 @@ jobs:
       - name: Remove preview
         if: github.event.action == 'closed'
         run: |
+          echo "Removing pr-${{ github.event.number }}"
           rm -rf pr-${{ github.event.number }}
 
-      - name: Commit & push
+      - name: Commit & push cleanup
         if: github.event.action == 'closed'
         run: |
           git config user.name github-actions
