@@ -7,9 +7,14 @@ function drawGrid(ctx, w, h) {
   ctx.stroke();
 }
 
+const RT60_THRESHOLD = Math.pow(10, -60 / 20);
+const MIN_TRANSIENT_PEAK = 0.06;
+const IMPULSE_PRE_SAMPLES = 256;
+const IMPULSE_POST_SAMPLES = 2048;
+
 function estimateRt60Ms(buffer, sampleRate, peakIndex, peakValue) {
   if (!buffer || !sampleRate || peakValue <= 0) return null;
-  const threshold = peakValue * 0.001; // -60 dB
+  const threshold = peakValue * RT60_THRESHOLD;
   for (let i = peakIndex; i < buffer.length; i++) {
     if (Math.abs(buffer[i]) <= threshold) {
       return ((i - peakIndex) / sampleRate) * 1000;
@@ -42,9 +47,9 @@ export function drawImpulseViewer({ state, dom, frame }) {
       }
     }
 
-    if (peak > 0.06) {
-      const pre = Math.min(256, peakIndex);
-      const post = Math.min(src.length - peakIndex - 1, 2048);
+    if (peak > MIN_TRANSIENT_PEAK) {
+      const pre = Math.min(IMPULSE_PRE_SAMPLES, peakIndex);
+      const post = Math.min(src.length - peakIndex, IMPULSE_POST_SAMPLES);
       const start = Math.max(0, peakIndex - pre);
       const end = Math.min(src.length, peakIndex + post);
       impulse.buffer = src.slice(start, end);

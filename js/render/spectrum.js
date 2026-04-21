@@ -83,9 +83,26 @@ function initWebGL(gl) {
 
 let webglStateSpec = null;
 let currentU8DataSpec = null;
+const NOISE_FLOOR_SAMPLE_STRIDE = 8;
+const NOISE_FLOOR_PERCENTILE = 0.2;
+const MAX_NOISE_PROFILE_SAMPLES = 3600;
+const MIN_TREND_CALC_MINUTES = 1 / 60;
+const MAX_FEEDBACK_STABLE_FRAMES = 300;
+const FEEDBACK_HIGH_RISK_THRESHOLD = 0.78;
 
 function formatDb(v) {
   return Number.isFinite(v) ? `${v.toFixed(1)} dB` : "--";
+}
+
+function percentileInterpolated(sortedValues, p) {
+  if (!sortedValues || sortedValues.length === 0) return null;
+  const clampedP = Math.max(0, Math.min(1, p));
+  const rawPos = (sortedValues.length - 1) * clampedP;
+  const lo = Math.floor(rawPos);
+  const hi = Math.ceil(rawPos);
+  if (lo === hi) return sortedValues[lo];
+  const t = rawPos - lo;
+  return sortedValues[lo] * (1 - t) + sortedValues[hi] * t;
 }
 
 function setupWebGLSpec(gl) {
@@ -232,7 +249,7 @@ export function drawSpectrum({ state, dom, frame }) {
   );
   ctxOvl.restore();
 
-  const howlingEnabled = dom.howlingWarning !== null;
+  const howlingEnabled = dom.feedbackWarning !== null;
   let peaks = [];
   let howlingDetected = false;
   const { peakCount } = state.config;
@@ -247,30 +264,31 @@ export function drawSpectrum({ state, dom, frame }) {
   const mOffset = Math.max(2, Math.round(150 / hzPerBin));
 
   const floorSamples = [];
-  for (let i = 2; i < bufferLength - 2; i += 8) {
+  for (let i = 2; i < bufferLength - 2; i += NOISE_FLOOR_SAMPLE_STRIDE) {
     const f = i * hzPerBin;
     if (f < minFreqLog || f > maxFreqLog) continue;
     floorSamples.push(freqData[i]);
   }
   floorSamples.sort((a, b) => a - b);
-  const noiseFloorDb =
-    floorSamples.length > 0
-      ? floorSamples[Math.floor(floorSamples.length * 0.2)]
-      : avgDb;
+  const noiseFloorDb = percentileInterpolated(floorSamples, NOISE_FLOOR_PERCENTILE) ?? avgDb;
 
   if (state.noiseProfile) {
     state.noiseProfile.currentDb = noiseFloorDb;
     if (state.noiseProfile.active) {
       const tSec = (Date.now() - state.noiseProfile.startTime) / 1000;
       state.noiseProfile.samples.push({ tSec, db: noiseFloorDb });
-      if (state.noiseProfile.samples.length > 3600) state.noiseProfile.samples.shift();
+      if (state.noiseProfile.samples.length > MAX_NOISE_PROFILE_SAMPLES) {
+        state.noiseProfile.samples.shift();
+      }
       const sum = state.noiseProfile.samples.reduce((acc, s) => acc + s.db, 0);
       state.noiseProfile.baselineDb = sum / state.noiseProfile.samples.length;
       if (state.noiseProfile.samples.length > 5) {
         const first = state.noiseProfile.samples[0];
         const last = state.noiseProfile.samples[state.noiseProfile.samples.length - 1];
-        const dtMin = Math.max(1 / 60, (last.tSec - first.tSec) / 60);
-        state.noiseProfile.trendDbPerMin = (last.db - first.db) / dtMin;
+        const dtMin = (last.tSec - first.tSec) / 60;
+        if (dtMin >= MIN_TREND_CALC_MINUTES) {
+          state.noiseProfile.trendDbPerMin = (last.db - first.db) / dtMin;
+        }
       }
     }
     if (dom.noiseProfileCurrent) {
@@ -360,7 +378,10 @@ export function drawSpectrum({ state, dom, frame }) {
   const narrownessDb = dominantDb - Math.max(leftVal, rightVal);
 
   if (Math.abs(dominantFreq - (state.feedbackLastFreq || 0)) < 25) {
-    state.feedbackStableFrames = Math.min(300, (state.feedbackStableFrames || 0) + 1);
+    state.feedbackStableFrames = Math.min(
+      MAX_FEEDBACK_STABLE_FRAMES,
+      (state.feedbackStableFrames || 0) + 1,
+    );
   } else {
     state.feedbackStableFrames = Math.max(0, (state.feedbackStableFrames || 0) - 2);
   }
@@ -382,7 +403,7 @@ export function drawSpectrum({ state, dom, frame }) {
       stableScore * 0.2;
   }
   state.feedbackRisk = (state.feedbackRisk || 0) * 0.9 + instantRisk * 0.1;
-  const feedbackHigh = state.feedbackRisk >= 0.78;
+  const feedbackHigh = state.feedbackRisk >= FEEDBACK_HIGH_RISK_THRESHOLD;
 
   if (dom.feedbackRiskText) {
     dom.feedbackRiskText.textContent = feedbackHigh
@@ -423,10 +444,10 @@ export function drawSpectrum({ state, dom, frame }) {
   }
   state.feedbackIsHigh = feedbackHigh;
 
-  if (dom.howlingWarning) {
+  if (dom.feedbackWarning) {
     const disp = howlingDetected || feedbackHigh ? "inline-block" : "none";
-    if (dom.howlingWarning.style.display !== disp) {
-      dom.howlingWarning.style.display = disp;
+    if (dom.feedbackWarning.style.display !== disp) {
+      dom.feedbackWarning.style.display = disp;
     }
   }
 

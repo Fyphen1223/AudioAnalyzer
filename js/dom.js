@@ -65,7 +65,7 @@ export function getDomRefs() {
     freqMaxInput: document.getElementById("freq-max"),
     peakCountInput: document.getElementById("peak-count"),
     peakCountVal: document.getElementById("peak-count-val"),
-    howlingWarning: document.getElementById("howling-warning"),
+    feedbackWarning: document.getElementById("feedback-warning"),
     feedbackRiskText: document.getElementById("feedback-risk-text"),
     feedbackRiskFill: document.getElementById("feedback-risk-fill"),
     meteringStandard: document.getElementById("metering-standard"),

@@ -10,6 +10,8 @@ import { drawTextToAudioBuffer } from "./spectrogramDraw.js";
 export function initApp() {
   const dom = getDomRefs();
   const state = createInitialState();
+  const TARGET_NOMINAL_PEAK_DB = -18;
+  const LOW_HEADROOM_THRESHOLD_DB = -6;
 
   function syncConfig() {
     if (!state.config) return;
@@ -170,8 +172,13 @@ export function initApp() {
     if (!samples || samples.length === 0) return null;
     const arr = samples.filter(Number.isFinite).slice().sort((a, b) => a - b);
     if (arr.length === 0) return null;
-    const idx = Math.max(0, Math.min(arr.length - 1, Math.floor((arr.length - 1) * p)));
-    return arr[idx];
+    const rawPos = (arr.length - 1) * p;
+    const pos = Math.max(0, Math.min(arr.length - 1, rawPos));
+    const lo = Math.floor(pos);
+    const hi = Math.ceil(pos);
+    if (lo === hi) return arr[lo];
+    const t = pos - lo;
+    return arr[lo] * (1 - t) + arr[hi] * t;
   }
 
   if (dom.btnNoiseProfile) {
@@ -223,7 +230,8 @@ export function initApp() {
       } else if (state.calibration.step === 2) {
         state.calibration.nominalPeakDb = getPercentile(state.calibration.samples, 0.9);
         if (state.calibration.nominalPeakDb != null) {
-          state.calibration.recommendedGainDeltaDb = -18 - state.calibration.nominalPeakDb;
+          state.calibration.recommendedGainDeltaDb =
+            TARGET_NOMINAL_PEAK_DB - state.calibration.nominalPeakDb;
         }
         state.calibration.step = 3;
         state.calibration.samples = [];
@@ -237,7 +245,7 @@ export function initApp() {
         const rec = state.calibration.recommendedGainDeltaDb;
         const loud = state.calibration.loudPeakDb;
         const safety =
-          loud != null && loud > -6
+          loud != null && loud > LOW_HEADROOM_THRESHOLD_DB
             ? "Headroom low; reduce gain."
             : "Headroom looks safe.";
         if (dom.calibrationInstruction) {

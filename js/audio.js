@@ -367,7 +367,7 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
     dom.peakValue.textContent = "-\u221E dB";
     dom.peakValue.style.color = "var(--text-muted)";
 
-    if (dom.howlingWarning) dom.howlingWarning.style.display = "none";
+    if (dom.feedbackWarning) dom.feedbackWarning.style.display = "none";
     if (dom.feedbackRiskText) dom.feedbackRiskText.textContent = "Low";
     if (dom.feedbackRiskFill) {
       dom.feedbackRiskFill.style.width = "0%";
