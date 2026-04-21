@@ -1,0 +1,138 @@
+export function getDomRefs() {
+  const canvasSpectrum = document.getElementById("canvas-spectrum");
+  const canvasSpectrumOverlay = document.getElementById(
+    "canvas-spectrum-overlay",
+  );
+  const canvasWaveform = document.getElementById("canvas-waveform");
+  const canvasSpectrogram = document.getElementById("canvas-spectrogram");
+  const canvasSpectrogramOverlay = document.getElementById(
+    "canvas-spectrogram-overlay",
+  );
+  const canvasVectorscope = document.getElementById("canvas-vectorscope");
+
+  return {
+    btnMic: document.getElementById("btn-mic"),
+    btnFreeze: document.getElementById("btn-freeze"),
+    statusText: document.getElementById("audio-status"),
+    sampleRateText: document.getElementById("sample-rate"),
+    channelsText: document.getElementById("audio-channels"),
+    deviceNameText: document.getElementById("audio-device-name"),
+
+    fftSizeSelect: document.getElementById("fft-size"),
+    specThemeSelect: document.getElementById("spec-theme"),
+    specModeSelect: document.getElementById("spec-mode"),
+    smoothingInput: document.getElementById("smoothing"),
+    smoothingVal: document.getElementById("smoothing-val"),
+    minDbInput: document.getElementById("min-db"),
+    minDbVal: document.getElementById("min-db-val"),
+    maxDbInput: document.getElementById("max-db"),
+    maxDbVal: document.getElementById("max-db-val"),
+    micSelect: document.getElementById("mic-select"),
+    micGain: document.getElementById("mic-gain"),
+    micGainVal: document.getElementById("mic-gain-val"),
+    outSelect: document.getElementById("out-select"),
+    btnTone: document.getElementById("btn-tone"),
+    toneType: document.getElementById("tone-type"),
+    toneFreq: document.getElementById("tone-freq"),
+    toneVol: document.getElementById("tone-vol"),
+    toneVolVal: document.getElementById("tone-vol-val"),
+    tonePan: document.getElementById("tone-pan"),
+    tonePanVal: document.getElementById("tone-pan-val"),
+    toneStatus: document.getElementById("tone-status"),
+
+    // FSK Modem
+    btnModemRx: document.getElementById("btn-modem-rx"),
+    btnModemTx: document.getElementById("btn-modem-tx"),
+    btnModemClear: document.getElementById("btn-modem-clear"),
+    modemMode: document.getElementById("modem-mode"),
+
+    modemTxText: document.getElementById("modem-tx-text"),
+    modemRxLog: document.getElementById("modem-rx-log"),
+    modemStatus: document.getElementById("modem-status"),
+    modemVol: document.getElementById("modem-vol"),
+    modemVolVal: document.getElementById("modem-vol-val"),
+
+    // Spectrogram Drawer
+    specDrawText: document.getElementById("spec-draw-text"),
+    specDrawSpeed: document.getElementById("spec-draw-speed"),
+    btnSpecDraw: document.getElementById("btn-spec-draw"),
+
+    btnBenchmark: document.getElementById("btn-benchmark"),
+    renderTimeDisplay: document.getElementById("render-time-display"),
+    updateRateSelect: document.getElementById("update-rate"),
+    freqScaleSelect: document.getElementById("freq-scale"),
+    freqMinInput: document.getElementById("freq-min"),
+    freqMaxInput: document.getElementById("freq-max"),
+    peakCountInput: document.getElementById("peak-count"),
+    peakCountVal: document.getElementById("peak-count-val"),
+    feedbackWarning: document.getElementById("feedback-warning"),
+    feedbackRiskText: document.getElementById("feedback-risk-text"),
+    feedbackRiskFill: document.getElementById("feedback-risk-fill"),
+    meteringStandard: document.getElementById("metering-standard"),
+
+    peakFill: document.getElementById("peak-fill"),
+    peakValue: document.getElementById("peak-value"),
+    clipLogContainer: document.getElementById("clip-log-container"),
+    clipLogEmpty: document.getElementById("clip-log-empty"),
+    btnClearClips: document.getElementById("btn-clear-clips"),
+    peakFreqValue: document.getElementById("peak-freq"),
+    correlationValue: document.getElementById("correlation-value"),
+    correlationFill: document.getElementById("correlation-fill"),
+    btnNoiseProfile: document.getElementById("btn-noise-profile"),
+    noiseProfileStatus: document.getElementById("noise-profile-status"),
+    noiseProfileCurrent: document.getElementById("noise-profile-current"),
+    noiseProfileBaseline: document.getElementById("noise-profile-baseline"),
+    noiseProfileTrend: document.getElementById("noise-profile-trend"),
+    btnCalibrationStart: document.getElementById("btn-calibration-start"),
+    btnCalibrationNext: document.getElementById("btn-calibration-next"),
+    btnCalibrationReset: document.getElementById("btn-calibration-reset"),
+    calibrationStatus: document.getElementById("calibration-status"),
+    calibrationInstruction: document.getElementById("calibration-instruction"),
+    calibrationResult: document.getElementById("calibration-result"),
+    btnImpulseCapture: document.getElementById("btn-impulse-capture"),
+    impulseStatus: document.getElementById("impulse-status"),
+    impulseRt60: document.getElementById("impulse-rt60"),
+    canvasImpulse: document.getElementById("canvas-impulse"),
+
+    canvasSpectrum,
+    ctxSpectrum: canvasSpectrum
+      ? canvasSpectrum.getContext("webgl2", { preserveDrawingBuffer: false }) ||
+        canvasSpectrum.getContext("webgl", { preserveDrawingBuffer: false })
+      : null,
+    canvasSpectrumOverlay,
+    ctxSpectrumOverlay: canvasSpectrumOverlay
+      ? canvasSpectrumOverlay.getContext("2d")
+      : null,
+    canvasWaveform,
+    ctxWaveform: canvasWaveform
+      ? canvasWaveform.getContext("webgl2", { preserveDrawingBuffer: false }) ||
+        canvasWaveform.getContext("webgl", { preserveDrawingBuffer: false })
+      : null,
+    canvasSpectrogram,
+    ctxSpectrogram: canvasSpectrogram
+      ? canvasSpectrogram.getContext("webgl2", {
+          preserveDrawingBuffer: true,
+        }) ||
+        canvasSpectrogram.getContext("webgl", { preserveDrawingBuffer: true })
+      : null,
+    canvasSpectrogramOverlay,
+    ctxSpectrogramOverlay: canvasSpectrogramOverlay
+      ? canvasSpectrogramOverlay.getContext("2d")
+      : null,
+    canvasVectorscope,
+    ctxVectorscope: canvasVectorscope
+      ? canvasVectorscope.getContext("webgl2", {
+          preserveDrawingBuffer: false,
+        }) ||
+        canvasVectorscope.getContext("webgl", { preserveDrawingBuffer: false })
+      : null,
+    ctxImpulse: document.getElementById("canvas-impulse")
+      ? document.getElementById("canvas-impulse").getContext("2d")
+      : null,
+    canvasVectorscopeOverlay: null, // If needed in future
+    ctxVectorscopeOverlay: null,
+
+    hoverTooltip: document.getElementById("hover-tooltip"),
+    fpsDisplay: document.getElementById("fps-display"),
+  };
+}
