@@ -84,6 +84,10 @@ function initWebGL(gl) {
 let webglStateSpec = null;
 let currentU8DataSpec = null;
 
+function formatDb(v) {
+  return Number.isFinite(v) ? `${v.toFixed(1)} dB` : "--";
+}
+
 function setupWebGLSpec(gl) {
   const result = initWebGL(gl);
   if (!result) return false;
@@ -242,6 +246,47 @@ export function drawSpectrum({ state, dom, frame }) {
   const avgDb = 10 * Math.log10(sumPower / sampleCount);
   const mOffset = Math.max(2, Math.round(150 / hzPerBin));
 
+  const floorSamples = [];
+  for (let i = 2; i < bufferLength - 2; i += 8) {
+    const f = i * hzPerBin;
+    if (f < minFreqLog || f > maxFreqLog) continue;
+    floorSamples.push(freqData[i]);
+  }
+  floorSamples.sort((a, b) => a - b);
+  const noiseFloorDb =
+    floorSamples.length > 0
+      ? floorSamples[Math.floor(floorSamples.length * 0.2)]
+      : avgDb;
+
+  if (state.noiseProfile) {
+    state.noiseProfile.currentDb = noiseFloorDb;
+    if (state.noiseProfile.active) {
+      const tSec = (Date.now() - state.noiseProfile.startTime) / 1000;
+      state.noiseProfile.samples.push({ tSec, db: noiseFloorDb });
+      if (state.noiseProfile.samples.length > 3600) state.noiseProfile.samples.shift();
+      const sum = state.noiseProfile.samples.reduce((acc, s) => acc + s.db, 0);
+      state.noiseProfile.baselineDb = sum / state.noiseProfile.samples.length;
+      if (state.noiseProfile.samples.length > 5) {
+        const first = state.noiseProfile.samples[0];
+        const last = state.noiseProfile.samples[state.noiseProfile.samples.length - 1];
+        const dtMin = Math.max(1 / 60, (last.tSec - first.tSec) / 60);
+        state.noiseProfile.trendDbPerMin = (last.db - first.db) / dtMin;
+      }
+    }
+    if (dom.noiseProfileCurrent) {
+      dom.noiseProfileCurrent.textContent = formatDb(state.noiseProfile.currentDb);
+    }
+    if (dom.noiseProfileBaseline) {
+      dom.noiseProfileBaseline.textContent = formatDb(state.noiseProfile.baselineDb);
+    }
+    if (dom.noiseProfileTrend) {
+      const trend = state.noiseProfile.trendDbPerMin;
+      dom.noiseProfileTrend.textContent = Number.isFinite(trend)
+        ? `${trend >= 0 ? "+" : ""}${trend.toFixed(2)} dB/min`
+        : "--";
+    }
+  }
+
   if (howlingEnabled || peakCount > 0) {
     for (let i = 2; i < bufferLength - 2; i++) {
       const val = freqData[i];
@@ -293,7 +338,8 @@ export function drawSpectrum({ state, dom, frame }) {
               if (dom.clipLogContainer) {
                 dom.clipLogContainer.innerHTML = state.eventLogs
                   .map((log) => {
-                    const color = log.includes("Howling")
+                    const color =
+                      log.includes("Howling") || log.includes("Feedback")
                       ? "#fbbf24"
                       : "#ef4444";
                     return `<div style="color: ${color}; border-bottom: 1px solid var(--border); padding: 2px 0;">${log}</div>`;
@@ -307,8 +353,78 @@ export function drawSpectrum({ state, dom, frame }) {
     }
   }
 
+  const dominantFreq = maxFreqIndex * hzPerBin;
+  const dominantDb = maxFreqVal;
+  const leftVal = freqData[Math.max(0, maxFreqIndex - 1)];
+  const rightVal = freqData[Math.min(bufferLength - 1, maxFreqIndex + 1)];
+  const narrownessDb = dominantDb - Math.max(leftVal, rightVal);
+
+  if (Math.abs(dominantFreq - (state.feedbackLastFreq || 0)) < 25) {
+    state.feedbackStableFrames = Math.min(300, (state.feedbackStableFrames || 0) + 1);
+  } else {
+    state.feedbackStableFrames = Math.max(0, (state.feedbackStableFrames || 0) - 2);
+  }
+  state.feedbackLastFreq = dominantFreq;
+
+  let instantRisk = 0;
+  if (dominantFreq > 150 && dominantDb > -45) {
+    const levelScore = Math.max(0, Math.min(1, (dominantDb + 45) / 20));
+    const contrastScore = Math.max(0, Math.min(1, (dominantDb - noiseFloorDb - 12) / 18));
+    const narrowScore = Math.max(0, Math.min(1, (narrownessDb - 2) / 10));
+    const stableScore = Math.max(
+      0,
+      Math.min(1, (state.feedbackStableFrames || 0) / 24),
+    );
+    instantRisk =
+      levelScore * 0.25 +
+      contrastScore * 0.35 +
+      narrowScore * 0.2 +
+      stableScore * 0.2;
+  }
+  state.feedbackRisk = (state.feedbackRisk || 0) * 0.9 + instantRisk * 0.1;
+  const feedbackHigh = state.feedbackRisk >= 0.78;
+
+  if (dom.feedbackRiskText) {
+    dom.feedbackRiskText.textContent = feedbackHigh
+      ? "High"
+      : state.feedbackRisk >= 0.5
+        ? "Medium"
+        : "Low";
+  }
+  if (dom.feedbackRiskFill) {
+    const p = Math.max(0, Math.min(100, state.feedbackRisk * 100));
+    dom.feedbackRiskFill.style.width = `${p.toFixed(0)}%`;
+    dom.feedbackRiskFill.style.backgroundColor = feedbackHigh
+      ? "#ef4444"
+      : p >= 50
+        ? "#f59e0b"
+        : "#10b981";
+  }
+
+  if (feedbackHigh && !state.feedbackIsHigh) {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString();
+    const fStr = dominantFreq > 1000
+      ? `${(dominantFreq / 1000).toFixed(2)}k`
+      : `${Math.round(dominantFreq)}`;
+    state.eventLogs.unshift(`[${timeStr}] Feedback Risk HIGH: ${fStr}Hz`);
+    if (state.eventLogs.length > 50) state.eventLogs.pop();
+    if (dom.clipLogContainer) {
+      dom.clipLogContainer.innerHTML = state.eventLogs
+        .map((log) => {
+          const color =
+            log.includes("Howling") || log.includes("Feedback")
+              ? "#fbbf24"
+              : "#ef4444";
+          return `<div style="color: ${color}; border-bottom: 1px solid var(--border); padding: 2px 0;">${log}</div>`;
+        })
+        .join("");
+    }
+  }
+  state.feedbackIsHigh = feedbackHigh;
+
   if (dom.howlingWarning) {
-    const disp = howlingDetected ? "inline-block" : "none";
+    const disp = howlingDetected || feedbackHigh ? "inline-block" : "none";
     if (dom.howlingWarning.style.display !== disp) {
       dom.howlingWarning.style.display = disp;
     }

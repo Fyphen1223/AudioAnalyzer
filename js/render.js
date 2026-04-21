@@ -2,6 +2,7 @@ import { drawSpectrum } from "./render/spectrum.js";
 import { drawWaveformAndMeter } from "./render/waveformMeter.js";
 import { drawSpectrogram } from "./render/spectrogram.js";
 import { drawVectorscope } from "./render/vectorscope.js";
+import { drawImpulseViewer } from "./render/impulse.js";
 import { demodulateFrame } from "./modem.js";
 
 function buildFrameData({ state, dom }) {
@@ -112,6 +113,7 @@ export function createRenderer({ state, dom }) {
     drawWaveformAndMeter({ state, dom, frame });
     drawSpectrogram({ dom, frame, state });
     drawVectorscope({ state, dom });
+    drawImpulseViewer({ state, dom, frame });
 
     if (state.modemActive && state.modemAnalyser) {
       demodulateFrame(state, dom, timestamp);

@@ -166,6 +166,128 @@ export function initApp() {
     stopAudio: audio.stopAudio,
   });
 
+  function getPercentile(samples, p) {
+    if (!samples || samples.length === 0) return null;
+    const arr = samples.filter(Number.isFinite).slice().sort((a, b) => a - b);
+    if (arr.length === 0) return null;
+    const idx = Math.max(0, Math.min(arr.length - 1, Math.floor((arr.length - 1) * p)));
+    return arr[idx];
+  }
+
+  if (dom.btnNoiseProfile) {
+    dom.btnNoiseProfile.addEventListener("click", () => {
+      state.noiseProfile.active = !state.noiseProfile.active;
+      if (state.noiseProfile.active) {
+        state.noiseProfile.startTime = Date.now();
+        state.noiseProfile.samples = [];
+        state.noiseProfile.baselineDb = null;
+        state.noiseProfile.trendDbPerMin = 0;
+        dom.btnNoiseProfile.textContent = "Stop Profiling";
+        if (dom.noiseProfileStatus) dom.noiseProfileStatus.textContent = "Running";
+      } else {
+        dom.btnNoiseProfile.textContent = "Start Profiling";
+        if (dom.noiseProfileStatus) dom.noiseProfileStatus.textContent = "Stopped";
+      }
+    });
+  }
+
+  if (dom.btnCalibrationStart) {
+    dom.btnCalibrationStart.addEventListener("click", () => {
+      state.calibration.active = true;
+      state.calibration.step = 1;
+      state.calibration.samples = [];
+      state.calibration.noiseFloorDb = null;
+      state.calibration.nominalPeakDb = null;
+      state.calibration.loudPeakDb = null;
+      state.calibration.recommendedGainDeltaDb = null;
+      if (dom.calibrationStatus) dom.calibrationStatus.textContent = "Running step 1";
+      if (dom.calibrationInstruction) {
+        dom.calibrationInstruction.textContent =
+          "Step 1/3: Stay quiet for room noise capture, then press Next.";
+      }
+      if (dom.calibrationResult) dom.calibrationResult.textContent = "--";
+    });
+  }
+
+  if (dom.btnCalibrationNext) {
+    dom.btnCalibrationNext.addEventListener("click", () => {
+      if (!state.calibration.active) return;
+      if (state.calibration.step === 1) {
+        state.calibration.noiseFloorDb = getPercentile(state.calibration.samples, 0.5);
+        state.calibration.step = 2;
+        state.calibration.samples = [];
+        if (dom.calibrationInstruction) {
+          dom.calibrationInstruction.textContent =
+            "Step 2/3: Speak/play at normal working level, then press Next.";
+        }
+      } else if (state.calibration.step === 2) {
+        state.calibration.nominalPeakDb = getPercentile(state.calibration.samples, 0.9);
+        if (state.calibration.nominalPeakDb != null) {
+          state.calibration.recommendedGainDeltaDb = -18 - state.calibration.nominalPeakDb;
+        }
+        state.calibration.step = 3;
+        state.calibration.samples = [];
+        if (dom.calibrationInstruction) {
+          dom.calibrationInstruction.textContent =
+            "Step 3/3: Produce the loudest expected level, then press Next.";
+        }
+      } else {
+        state.calibration.loudPeakDb = getPercentile(state.calibration.samples, 0.98);
+        state.calibration.active = false;
+        const rec = state.calibration.recommendedGainDeltaDb;
+        const loud = state.calibration.loudPeakDb;
+        const safety =
+          loud != null && loud > -6
+            ? "Headroom low; reduce gain."
+            : "Headroom looks safe.";
+        if (dom.calibrationInstruction) {
+          dom.calibrationInstruction.textContent = "Calibration complete.";
+        }
+        if (dom.calibrationStatus) dom.calibrationStatus.textContent = "Completed";
+        if (dom.calibrationResult) {
+          const recText =
+            rec == null ? "--" : `${rec >= 0 ? "+" : ""}${rec.toFixed(1)} dB`;
+          const noiseText =
+            state.calibration.noiseFloorDb == null
+              ? "--"
+              : `${state.calibration.noiseFloorDb.toFixed(1)} dB`;
+          const nominalText =
+            state.calibration.nominalPeakDb == null
+              ? "--"
+              : `${state.calibration.nominalPeakDb.toFixed(1)} dB`;
+          const loudText = loud == null ? "--" : `${loud.toFixed(1)} dB`;
+          dom.calibrationResult.textContent = `Noise: ${noiseText} | Nominal peak: ${nominalText} | Loud peak: ${loudText} | Gain adjust: ${recText} | ${safety}`;
+        }
+        state.calibration.step = 0;
+        state.calibration.samples = [];
+      }
+    });
+  }
+
+  if (dom.btnCalibrationReset) {
+    dom.btnCalibrationReset.addEventListener("click", () => {
+      state.calibration.active = false;
+      state.calibration.step = 0;
+      state.calibration.samples = [];
+      state.calibration.noiseFloorDb = null;
+      state.calibration.nominalPeakDb = null;
+      state.calibration.loudPeakDb = null;
+      state.calibration.recommendedGainDeltaDb = null;
+      if (dom.calibrationStatus) dom.calibrationStatus.textContent = "Idle";
+      if (dom.calibrationInstruction) {
+        dom.calibrationInstruction.textContent = "Press Start to begin 3-step calibration.";
+      }
+      if (dom.calibrationResult) dom.calibrationResult.textContent = "--";
+    });
+  }
+
+  if (dom.btnImpulseCapture) {
+    dom.btnImpulseCapture.addEventListener("click", () => {
+      state.impulse.captureRequested = true;
+      if (dom.impulseStatus) dom.impulseStatus.textContent = "Capturing...";
+    });
+  }
+
   // FSK Modem Handlers
   if (dom.btnModemTx) {
     dom.btnModemTx.addEventListener("click", () => {

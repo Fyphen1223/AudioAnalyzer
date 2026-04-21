@@ -86,4 +86,14 @@ export function resizeCanvases(dom) {
     dom.canvasVectorscope.style.width = vectorscopeRect.width + "px";
     dom.canvasVectorscope.style.height = vectorscopeRect.height + "px";
   }
+
+  if (dom.canvasImpulse && dom.ctxImpulse) {
+    const impulseRect = dom.canvasImpulse.parentElement.getBoundingClientRect();
+    dom.canvasImpulse.width = impulseRect.width * dpr;
+    dom.canvasImpulse.height = impulseRect.height * dpr;
+    dom.ctxImpulse.setTransform(1, 0, 0, 1, 0, 0);
+    dom.ctxImpulse.scale(dpr, dpr);
+    dom.canvasImpulse.style.width = impulseRect.width + "px";
+    dom.canvasImpulse.style.height = impulseRect.height + "px";
+  }
 }

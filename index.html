@@ -415,7 +415,7 @@
                   font-weight: bold;
                   animation: blink 1s infinite;
                 "
-                >HOWLING!</span
+                >FEEDBACK RISK HIGH</span
               >
             </h2>
 
@@ -426,6 +426,32 @@
                 <option value="rms">RMS</option>
                 <option value="lufs">LUFS (Approximation)</option>
               </select>
+            </div>
+
+            <div class="setting-group" style="margin-bottom: 0.75rem">
+              <label style="margin-bottom: 0.3rem"
+                >Auto Feedback Detector:
+                <strong id="feedback-risk-text">Low</strong></label
+              >
+              <div
+                style="
+                  height: 8px;
+                  background: #111827;
+                  border: 1px solid var(--border);
+                  border-radius: 999px;
+                  overflow: hidden;
+                "
+              >
+                <div
+                  id="feedback-risk-fill"
+                  style="
+                    height: 100%;
+                    width: 0%;
+                    background: #10b981;
+                    transition: width 120ms linear;
+                  "
+                ></div>
+              </div>
             </div>
 
             <div class="meter-wrapper">
@@ -490,6 +516,99 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <div class="panel">
+            <h2>Noise Floor Profiler</h2>
+            <div class="setting-group">
+              <button id="btn-noise-profile" class="btn" style="width: 100%">
+                Start Profiling
+              </button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
+              Status: <span id="noise-profile-status">Stopped</span>
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
+              Current Floor: <span id="noise-profile-current">--</span>
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
+              Baseline: <span id="noise-profile-baseline">--</span>
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
+              Trend: <span id="noise-profile-trend">--</span>
+            </p>
+          </div>
+
+          <div class="panel">
+            <h2>Calibration Wizard (Gain Staging)</h2>
+            <div
+              class="setting-group"
+              style="display: flex; gap: 0.4rem; flex-wrap: wrap"
+            >
+              <button
+                id="btn-calibration-start"
+                class="btn"
+                style="flex: 1; min-width: 90px"
+              >
+                Start
+              </button>
+              <button
+                id="btn-calibration-next"
+                class="btn"
+                style="flex: 1; min-width: 90px"
+              >
+                Next
+              </button>
+              <button
+                id="btn-calibration-reset"
+                class="btn"
+                style="flex: 1; min-width: 90px"
+              >
+                Reset
+              </button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
+              Status: <span id="calibration-status">Idle</span>
+            </p>
+            <p
+              id="calibration-instruction"
+              style="font-size: 0.85rem; color: var(--text-muted)"
+            >
+              Press Start to begin 3-step calibration.
+            </p>
+            <p
+              id="calibration-result"
+              style="font-size: 0.82rem; color: var(--text-main)"
+            >
+              --
+            </p>
+          </div>
+
+          <div class="panel">
+            <h2>Impulse Response Viewer</h2>
+            <div class="setting-group">
+              <button id="btn-impulse-capture" class="btn" style="width: 100%">
+                Capture Impulse
+              </button>
+            </div>
+            <div
+              style="
+                width: 100%;
+                height: 140px;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                overflow: hidden;
+                margin-bottom: 0.5rem;
+              "
+            >
+              <canvas id="canvas-impulse" style="width: 100%; height: 100%"></canvas>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
+              Capture: <span id="impulse-status">Waiting</span>
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
+              Estimated RT60: <span id="impulse-rt60">--</span>
+            </p>
           </div>
 
           <div class="panel">
