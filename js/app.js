@@ -56,7 +56,7 @@ export function initApp() {
   const handleResize = () => {
     resizeCanvases(dom);
     const dpr = window.devicePixelRatio || 1;
-    if (state.config) {
+    if (state && state.config) {
       if (dom.canvasSpectrum) {
         state.config.wSpec = dom.canvasSpectrum.width / dpr || 0;
         state.config.hSpec = dom.canvasSpectrum.height / dpr || 0;
@@ -335,31 +335,40 @@ export function initApp() {
   window.addEventListener("resize", handleResize);
 
   const dropZone = document.getElementById("drop-zone");
-  document.body.addEventListener("dragover", (e) => {
+  const dragBody = document.body;
+  dragBody.addEventListener("dragover", (e) => {
     e.preventDefault();
     if (dropZone) dropZone.style.display = "flex";
   });
 
-  document.body.addEventListener("dragleave", (e) => {
+  dragBody.addEventListener("dragleave", (e) => {
     e.preventDefault();
     if (e.relatedTarget === null) {
       if (dropZone) dropZone.style.display = "none";
     }
   });
 
-  document.body.addEventListener("drop", (e) => {
+  const bodyEl = document.body;
+  bodyEl.addEventListener("drop", (e) => {
     e.preventDefault();
     if (dropZone) dropZone.style.display = "none";
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
+      const validExtensions = [".wav", ".mp3", ".ogg", ".flac", ".m4a", ".aac"];
+      const extension = file.name
+        .substring(file.name.lastIndexOf("."))
+        .toLowerCase();
+
       if (
         file.type.startsWith("audio/") ||
-        file.name.endsWith(".wav") ||
-        file.name.endsWith(".mp3")
+        file.type.startsWith("video/") ||
+        validExtensions.includes(extension)
       ) {
         audio.startAudioFromFile(file);
       } else {
-        alert("Please drop a valid audio file (e.g. .wav or .mp3)");
+        alert(
+          "Please drop a valid audio file (e.g. .wav or .mp3, .flac, .m4a)",
+        );
       }
     }
   });

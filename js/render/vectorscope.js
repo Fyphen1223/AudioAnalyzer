@@ -78,6 +78,8 @@ export function drawVectorscope({ state, dom }) {
   }
   const timeR = state.timeRBuffer;
 
+  const minFftSize = Math.min(fftSize, state.analyserR.fftSize);
+
   if (!state.isFrozen) {
     state.analyserL.getFloatTimeDomainData(timeL);
     state.analyserR.getFloatTimeDomainData(timeR);
@@ -87,7 +89,7 @@ export function drawVectorscope({ state, dom }) {
   let normL = 0;
   let normR = 0;
 
-  for (let i = 0; i < fftSize; i++) {
+  for (let i = 0; i < minFftSize; i++) {
     const l = timeL[i];
     const r = timeR[i];
     dot += l * r;
@@ -121,7 +123,7 @@ export function drawVectorscope({ state, dom }) {
   // Line color: rgba(226, 232, 240, 0.8)
   gl.uniform4f(uColorLoc, 226 / 255, 232 / 255, 240 / 255, 0.8);
   gl.lineWidth(1.0);
-  gl.drawArrays(gl.LINE_STRIP, 0, fftSize);
+  gl.drawArrays(gl.LINE_STRIP, 0, minFftSize);
 
   gl.disableVertexAttribArray(aLLoc);
   gl.disableVertexAttribArray(aRLoc);

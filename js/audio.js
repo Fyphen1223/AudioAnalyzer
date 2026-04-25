@@ -184,12 +184,20 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
       }
 
       const fileUrl = URL.createObjectURL(file);
-      const audioPlayer = document.getElementById("audio-player");
+      let audioPlayer = document.getElementById("audio-player");
       if (audioPlayer) {
+        // Recreate the audio element to bypass 'already connected' error on subsequent files
+        const newPlayer = document.createElement("audio");
+        newPlayer.id = "audio-player";
+        newPlayer.controls = true;
+        newPlayer.style = audioPlayer.getAttribute("style");
+        audioPlayer.parentNode.replaceChild(newPlayer, audioPlayer);
+        audioPlayer = newPlayer;
+
         audioPlayer.src = fileUrl;
         audioPlayer.style.display = "block";
         audioPlayer.onplay = () => {
-          if (state.audioCtx.state === "suspended") {
+          if (state.audioCtx && state.audioCtx.state === "suspended") {
             state.audioCtx.resume();
           }
         };
@@ -296,6 +304,7 @@ export function createAudioController({ state, dom, resizeCanvases, draw }) {
         state.toneOsc = null;
       }
       state.audioCtx.close();
+      state.audioCtx = null;
     }
     if (state.stream) {
       state.stream.getTracks().forEach((track) => track.stop());

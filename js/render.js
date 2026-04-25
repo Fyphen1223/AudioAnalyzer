@@ -83,15 +83,18 @@ function buildFrameData({ state, dom }) {
 
 export function createRenderer({ state, dom }) {
   function draw(timestamp = 0, force = false) {
+    if (!force && !state.isRunning) return;
     if (!force) {
-      state.animationId = requestAnimationFrame(draw);
+      state.animationId = requestAnimationFrame(() =>
+        draw(performance.now(), false),
+      );
     }
 
     if (!force) {
       state.fpsFrameCount++;
       if (timestamp - state.lastFpsTime >= 1000) {
         if (dom.fpsDisplay) {
-          dom.fpsDisplay.textContent = `${state.fpsFrameCount}`;
+          dom.fpsDisplay.textContent = `${state.fpsFrameCount} FPS`;
         }
         state.fpsFrameCount = 0;
         state.lastFpsTime = timestamp;

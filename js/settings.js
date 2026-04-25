@@ -60,7 +60,10 @@ export function bindSettings({
     let minF = parseInt(dom.freqMinInput.value, 10) || 20;
     let maxF = parseInt(dom.freqMaxInput.value, 10) || 20000;
     if (minF < 1) minF = 1;
-    if (maxF <= minF) maxF = minF + 100;
+    if (maxF <= minF) {
+      maxF = minF + 100;
+      dom.freqMaxInput.value = maxF; // Push back to UI
+    }
 
     const labels = [];
     if (dom.freqScaleSelect.value === "linear") {
@@ -170,16 +173,6 @@ export function bindSettings({
         dom.clipLogContainer.innerHTML =
           '<div style="color: var(--text-muted); text-align: center; padding: 1rem 0;" id="clip-log-empty">No events recorded</div>';
         dom.clipLogEmpty = document.getElementById("clip-log-empty");
-      }
-    });
-  }
-
-  if (dom.micSelect) {
-    dom.micSelect.addEventListener("change", () => {
-      // Re-start audio with new microphone if already running
-      if (state.isRunning) {
-        stopAudio();
-        startAudio();
       }
     });
   }

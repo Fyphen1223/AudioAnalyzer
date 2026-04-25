@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Audio Analyzer / AA</title>
+    <title>Audio Analyzer</title>
     <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#161616" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -15,55 +15,58 @@
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(15, 23, 42, 0.9);
-        color: #fff;
+        background: rgba(14, 14, 14, 0.95);
+        color: var(--text-main);
         z-index: 10000;
         align-items: center;
         justify-content: center;
-        font-size: 3rem;
-        font-weight: bold;
+        font-size: 2rem;
+        font-weight: 500;
+        letter-spacing: 0.05em;
         pointer-events: none;
-        border: 4px dashed #3ef;
+        border: 2px dashed var(--accent);
+        margin: 16px;
       "
     >
-      Drop Audio File Here
+      DROP AUDIO FILE
     </div>
     <div class="app-container">
       <header>
-        <div class="header-left">
-          <h1>Audio Analyzer</h1>
-          <br />
-          <div style="display: flex; gap: 0.5rem; align-items: center">
-            <button id="btn-mic" class="btn">Start Microphone</button>
-            <button id="btn-freeze" class="btn">Freeze</button>
-            <button id="btn-benchmark" class="btn" style="background: #475569">
-              Benchmark
-            </button>
-            <audio
-              id="audio-player"
-              controls
-              style="display: none; height: 32px"
-            ></audio>
-            <div
-              id="render-time-display"
-              style="
-                font-family: monospace;
-                margin-left: 1rem;
-                font-size: 0.9rem;
-                color: #94a3b8;
-              "
-            >
-              Render: -- ms
-            </div>
-            <div
-              style="
-                font-family: monospace;
-                margin-left: 1rem;
-                font-size: 0.9rem;
-                color: #94a3b8;
-              "
-            >
-              FPS: <span id="fps-display">--</span>
+        <h1 style="margin: 0; margin-right: auto">AUDIO ANALYZER</h1>
+
+        <div style="display: flex; gap: 8px; align-items: inherit">
+          <button id="btn-mic" class="btn">Start Microphone</button>
+          <button id="btn-freeze" class="btn">Freeze</button>
+          <button
+            id="btn-benchmark"
+            class="btn"
+            style="border-color: var(--border)"
+          >
+            Benchmark
+          </button>
+          <audio
+            id="audio-player"
+            controls
+            style="display: none; height: 28px; border-radius: 2px"
+          ></audio>
+
+          <div
+            style="
+              display: flex;
+              gap: 16px;
+              margin-left: 16px;
+              padding-left: 16px;
+              border-left: 1px solid var(--border);
+              font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+              font-size: 0.8rem;
+              color: var(--text-muted);
+              align-items: center;
+            "
+          >
+            <div id="render-time-display">Render: -- ms</div>
+            <div>
+              FPS:
+              <span id="fps-display" style="color: var(--text-main)">--</span>
             </div>
           </div>
         </div>
@@ -93,7 +96,13 @@
           <div class="panel">
             <h2>Analyzer Settings</h2>
 
-            <div class="setting-group">
+            <div
+              class="setting-group"
+              style="
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--border);
+              "
+            >
               <label for="mic-select">Microphone</label>
               <select id="mic-select">
                 <option value="default">Default Device</option>
@@ -101,9 +110,20 @@
             </div>
 
             <div class="setting-group">
-              <label for="mic-gain"
-                >Microphone Gain: <span id="mic-gain-val">0</span> dB</label
+              <label
+                for="mic-gain"
+                style="display: flex; justify-content: space-between"
               >
+                <span>Gain</span>
+                <span
+                  id="mic-gain-val"
+                  style="
+                    font-family: ui-monospace, monospace;
+                    color: var(--text-main);
+                  "
+                  >0 dB</span
+                >
+              </label>
               <input
                 type="range"
                 id="mic-gain"
@@ -118,6 +138,25 @@
               <label for="out-select">Output Speaker</label>
               <select id="out-select">
                 <option value="default">Default Device</option>
+              </select>
+            </div>
+
+            <div class="setting-group">
+              <label for="spec-theme">Spectrogram Theme</label>
+              <select id="spec-theme">
+                <option value="classic">Classic</option>
+                <option value="fire">Fire</option>
+                <option value="ocean">Ocean</option>
+                <option value="matrix">Matrix</option>
+                <option value="grayscale">Grayscale</option>
+              </select>
+            </div>
+
+            <div class="setting-group">
+              <label for="spec-mode">Spectrogram Mode</label>
+              <select id="spec-mode">
+                <option value="standard">Standard</option>
+                <option value="waterfall">Waterfall</option>
               </select>
             </div>
 
@@ -176,8 +215,27 @@
               </div>
             </div>
 
-            <div class="setting-group">
-              <label for="peak-count">Show Peaks (Max: 20)</label>
+            <div
+              class="setting-group"
+              style="
+                padding-bottom: 16px;
+                border-bottom: 1px solid var(--border);
+              "
+            >
+              <label
+                for="peak-count"
+                style="display: flex; justify-content: space-between"
+              >
+                <span>Show Peaks</span>
+                <span
+                  id="peak-count-val"
+                  style="
+                    font-family: ui-monospace, monospace;
+                    color: var(--text-main);
+                  "
+                  >10</span
+                >
+              </label>
               <input
                 type="range"
                 id="peak-count"
@@ -186,15 +244,6 @@
                 step="1"
                 value="10"
               />
-              <div
-                style="
-                  text-align: right;
-                  font-size: 0.8rem;
-                  color: var(--text-muted);
-                "
-              >
-                <span id="peak-count-val">10</span> peaks
-              </div>
             </div>
 
             <div class="setting-group">
@@ -210,71 +259,128 @@
               </select>
             </div>
 
-            <div class="setting-group">
+            <div
+              class="setting-group"
+              style="
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--border);
+              "
+            >
               <label>Toggle Visualizers</label>
               <div
                 style="
-                  display: flex;
-                  flex-direction: column;
-                  gap: 0.5rem;
-                  margin-top: 0.5rem;
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 8px;
+                  margin-top: 8px;
                 "
               >
                 <label
                   style="
                     display: flex;
                     align-items: center;
-                    gap: 0.5rem;
+                    gap: 6px;
                     cursor: pointer;
                     color: var(--text-main);
-                    font-size: 0.85rem;
+                    font-size: 0.8rem;
+                    background: var(--bg-card);
+                    padding: 6px;
+                    border-radius: 3px;
+                    border: 1px solid var(--border);
                   "
-                  ><input type="checkbox" id="toggle-fsa" checked /> Frequency
-                  Spectrum</label
                 >
+                  <input
+                    type="checkbox"
+                    id="toggle-fsa"
+                    checked
+                    style="accent-color: var(--accent)"
+                  />
+                  FSA
+                </label>
                 <label
                   style="
                     display: flex;
                     align-items: center;
-                    gap: 0.5rem;
+                    gap: 6px;
                     cursor: pointer;
                     color: var(--text-main);
-                    font-size: 0.85rem;
+                    font-size: 0.8rem;
+                    background: var(--bg-card);
+                    padding: 6px;
+                    border-radius: 3px;
+                    border: 1px solid var(--border);
                   "
-                  ><input type="checkbox" id="toggle-spectrogram" checked />
-                  Spectrogram</label
                 >
+                  <input
+                    type="checkbox"
+                    id="toggle-spectrogram"
+                    checked
+                    style="accent-color: var(--accent)"
+                  />
+                  Spectral
+                </label>
                 <label
                   style="
                     display: flex;
                     align-items: center;
-                    gap: 0.5rem;
+                    gap: 6px;
                     cursor: pointer;
                     color: var(--text-main);
-                    font-size: 0.85rem;
+                    font-size: 0.8rem;
+                    background: var(--bg-card);
+                    padding: 6px;
+                    border-radius: 3px;
+                    border: 1px solid var(--border);
                   "
-                  ><input type="checkbox" id="toggle-oscilloscope" checked />
-                  Oscilloscope</label
                 >
+                  <input
+                    type="checkbox"
+                    id="toggle-oscilloscope"
+                    checked
+                    style="accent-color: var(--accent)"
+                  />
+                  Oscillo
+                </label>
                 <label
                   style="
                     display: flex;
                     align-items: center;
-                    gap: 0.5rem;
+                    gap: 6px;
                     cursor: pointer;
                     color: var(--text-main);
-                    font-size: 0.85rem;
+                    font-size: 0.8rem;
+                    background: var(--bg-card);
+                    padding: 6px;
+                    border-radius: 3px;
+                    border: 1px solid var(--border);
                   "
-                  ><input type="checkbox" id="toggle-vectorscope" checked />
-                  Vectorscope</label
                 >
+                  <input
+                    type="checkbox"
+                    id="toggle-vectorscope"
+                    checked
+                    style="accent-color: var(--accent)"
+                  />
+                  Vector
+                </label>
               </div>
             </div>
 
             <div class="setting-group">
-              <label for="smoothing"
-                >Smoothing Constant: <span id="smoothing-val">0.85</span></label
+              <label
+                for="smoothing"
+                style="display: flex; justify-content: space-between"
               >
+                <span>Smoothing</span>
+                <span
+                  id="smoothing-val"
+                  style="
+                    font-family: ui-monospace, monospace;
+                    color: var(--text-main);
+                  "
+                  >0.85</span
+                >
+              </label>
               <input
                 type="range"
                 id="smoothing"
@@ -286,9 +392,20 @@
             </div>
 
             <div class="setting-group">
-              <label for="min-db"
-                >Min dB Limit: <span id="min-db-val">-90</span> dB</label
+              <label
+                for="min-db"
+                style="display: flex; justify-content: space-between"
               >
+                <span>Min dB</span>
+                <span
+                  id="min-db-val"
+                  style="
+                    font-family: ui-monospace, monospace;
+                    color: var(--text-main);
+                  "
+                  >-90</span
+                >
+              </label>
               <input
                 type="range"
                 id="min-db"
@@ -300,9 +417,20 @@
             </div>
 
             <div class="setting-group">
-              <label for="max-db"
-                >Max dB Limit: <span id="max-db-val">-10</span> dB</label
+              <label
+                for="max-db"
+                style="display: flex; justify-content: space-between"
               >
+                <span>Max dB</span>
+                <span
+                  id="max-db-val"
+                  style="
+                    font-family: ui-monospace, monospace;
+                    color: var(--text-main);
+                  "
+                  >-10</span
+                >
+              </label>
               <input
                 type="range"
                 id="max-db"
@@ -322,60 +450,71 @@
                 align-items: center;
               "
             >
-              Test Tone Generator
+              Test Tone Gen
               <div
                 id="tone-status"
                 style="
-                  font-size: 0.75rem;
-                  font-weight: normal;
-                  color: #facc15;
+                  font-size: 0.7rem;
+                  font-weight: 600;
+                  color: var(--color-warn);
                   display: none;
+                  background: rgba(194, 153, 74, 0.15);
+                  padding: 2px 6px;
+                  border-radius: 2px;
+                  letter-spacing: 0.05em;
                 "
               >
-                (Running)
+                RUNNING
               </div>
             </h2>
-            <div class="setting-group">
-              <button id="btn-tone" class="btn" style="padding: 4px">
-                Enable Tone
+            <div class="setting-group" style="margin-bottom: 12px">
+              <button
+                id="btn-tone"
+                class="btn"
+                style="width: 100%; padding: 8px"
+              >
+                ENABLE TONE
               </button>
             </div>
             <div
               class="setting-group"
-              style="display: flex; gap: 0.5rem; flex-wrap: wrap"
+              style="display: flex; gap: 8px; flex-wrap: wrap"
             >
               <div style="flex: 1">
-                <label for="tone-type">Waveform</label>
-                <select id="tone-type" style="width: 100%">
+                <label for="tone-type">Wave</label>
+                <select id="tone-type">
                   <option value="sine">Sine</option>
-                  <option value="sawtooth">Sawtooth</option>
+                  <option value="sawtooth">Saw</option>
                   <option value="square">Square</option>
-                  <option value="triangle">Triangle</option>
+                  <option value="triangle">Tri</option>
                 </select>
               </div>
               <div style="flex: 1">
-                <label for="tone-freq">Frequency (Hz)</label>
+                <label for="tone-freq">Freq (Hz)</label>
                 <input
                   type="number"
                   id="tone-freq"
                   value="440"
                   min="1"
                   max="24000"
-                  style="
-                    width: 100%;
-                    padding: 0.4rem;
-                    background: var(--bg-dark);
-                    color: var(--text-main);
-                    border: 1px solid var(--border);
-                    border-radius: 4px;
-                  "
                 />
               </div>
             </div>
             <div class="setting-group">
-              <label for="tone-vol"
-                >Volume (Gain): <span id="tone-vol-val">-12</span> dB</label
+              <label
+                for="tone-vol"
+                style="display: flex; justify-content: space-between"
               >
+                <span>Volume</span>
+                <span
+                  id="tone-vol-val"
+                  style="
+                    font-family: ui-monospace, monospace;
+                    color: var(--text-main);
+                  "
+                  >-12</span
+                >
+              </label>
               <input
                 type="range"
                 id="tone-vol"
@@ -386,9 +525,20 @@
               />
             </div>
             <div class="setting-group">
-              <label for="tone-pan"
-                >Pan: <span id="tone-pan-val">Center</span></label
+              <label
+                for="tone-pan"
+                style="display: flex; justify-content: space-between"
               >
+                <span>Pan</span>
+                <span
+                  id="tone-pan-val"
+                  style="
+                    font-family: ui-monospace, monospace;
+                    color: var(--text-main);
+                  "
+                  >0</span
+                >
+              </label>
               <input
                 type="range"
                 id="tone-pan"
@@ -401,26 +551,32 @@
           </div>
 
           <div class="panel peak-meter-panel">
-            <h2 style="display: flex; justify-content: space-between">
-              Level Meter
+            <h2
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              LEVEL METER
               <span
                 id="howling-warning"
                 style="
                   display: none;
                   color: white;
-                  background: #ef4444;
-                  padding: 0.1rem 0.4rem;
-                  border-radius: 4px;
-                  font-size: 0.8rem;
-                  font-weight: bold;
+                  background: var(--color-danger);
+                  padding: 2px 6px;
+                  border-radius: 2px;
+                  font-size: 0.75rem;
+                  font-weight: 500;
                   animation: blink 1s infinite;
+                  letter-spacing: 0.05em;
                 "
-                >HOWLING!</span
+                >HOWLING</span
               >
             </h2>
 
-            <div class="setting-group" style="margin-bottom: 0.5rem">
-              <label for="metering-standard">Metering Standard</label>
+            <div class="setting-group" style="margin-bottom: 8px">
               <select id="metering-standard" style="width: 100%">
                 <option value="peak" selected>Peak (True Peak)</option>
                 <option value="rms">RMS</option>
@@ -439,28 +595,23 @@
                 <div class="marker" style="left: 100%">0</div>
               </div>
             </div>
-            <div class="peak-readout" id="peak-value">-&#8734; dB</div>
-            <div class="setting-group" style="margin-top: 1rem">
+            <div class="peak-readout" id="peak-value" style="margin-top: 4px">
+              -&#8734; dB
+            </div>
+            <div class="setting-group" style="margin-top: 24px">
               <div
                 style="
                   display: flex;
                   justify-content: space-between;
                   align-items: center;
-                  margin-bottom: 0.5rem;
+                  margin-bottom: 8px;
                 "
               >
                 <label style="margin: 0">Event Log (Clip/Howling)</label>
                 <button
                   id="btn-clear-clips"
-                  style="
-                    background: var(--bg-dark);
-                    color: var(--text-main);
-                    border: 1px solid var(--border);
-                    border-radius: 4px;
-                    padding: 2px 6px;
-                    font-size: 0.75rem;
-                    cursor: pointer;
-                  "
+                  class="btn"
+                  style="padding: 2px 6px; font-size: 0.75rem"
                 >
                   Clear
                 </button>
@@ -468,21 +619,22 @@
               <div
                 id="clip-log-container"
                 style="
-                  background: var(--bg-dark);
+                  background: var(--bg-input);
                   max-height: 100px;
                   overflow-y: auto;
-                  padding: 4px;
-                  font-family: monospace;
-                  font-size: 0.8rem;
+                  padding: 8px;
+                  font-family:
+                    ui-monospace, SFMono-Regular, Consolas, monospace;
+                  font-size: 0.75rem;
                   border: 1px solid var(--border);
-                  border-radius: 4px;
+                  border-radius: 3px;
                 "
               >
                 <div
                   style="
                     color: var(--text-muted);
                     text-align: center;
-                    padding: 1rem 0;
+                    padding: 8px 0;
                   "
                   id="clip-log-empty"
                 >
@@ -952,9 +1104,39 @@
                   color: var(--text-muted);
                   font-size: 0.7rem;
                   font-family: monospace;
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
                 "
               >
-                Correlation: <span id="correlation-meter">--</span>
+                Corr:
+                <span
+                  id="correlation-value"
+                  style="display: inline-block; width: 40px; text-align: right"
+                  >--</span
+                >
+                <div
+                  style="
+                    width: 80px;
+                    height: 6px;
+                    border: 1px solid var(--border);
+                    position: relative;
+                  "
+                >
+                  <div
+                    id="correlation-fill"
+                    style="
+                      position: absolute;
+                      left: 0;
+                      bottom: 0;
+                      top: 0;
+                      background: var(--accent);
+                      transition:
+                        width 0.1s linear,
+                        background-color 0.1s linear;
+                    "
+                  ></div>
+                </div>
               </div>
               <div
                 style="

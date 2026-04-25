@@ -85,6 +85,13 @@ export function startTransmission(state, text, mode, volDb = -12, speed = 20) {
   osc.connect(gainNode);
   gainNode.connect(state.audioCtx.destination); // Play through gain node
 
+  osc.onended = () => {
+    try {
+      osc.disconnect();
+      gainNode.disconnect();
+    } catch (e) {}
+  };
+
   osc.start(T0);
   osc.stop(totalTime + T);
 
