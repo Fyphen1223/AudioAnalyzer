@@ -16,6 +16,23 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Setup Rust toolchain
+        if: github.event.action != 'closed'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        if: github.event.action != 'closed'
+        run: cargo install wasm-pack --locked
+
+      - name: Build wasm-fft package
+        if: github.event.action != 'closed'
+        run: |
+          cd wasm-fft
+          wasm-pack build --target web --release
+          test -f pkg/wasm_fft.js
+
       # --- 基本情報ログ ---
       - name: Debug event
         run: |
