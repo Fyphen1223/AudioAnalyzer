@@ -22,16 +22,20 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
-      - name: Install wasm-pack
+      - name: Setup wasm-pack
         if: github.event.action != 'closed'
-        run: cargo install wasm-pack --locked
+        uses: jetli/wasm-pack-action@v0.4.0
 
       - name: Build wasm-fft package
         if: github.event.action != 'closed'
         run: |
           cd wasm-fft
           wasm-pack build --target web --release
-          test -f pkg/wasm_fft.js
+          if [ ! -f pkg/wasm_fft.js ]; then
+            echo "ERROR: wasm-fft/pkg/wasm_fft.js not found after wasm-pack build"
+            ls -la pkg || true
+            exit 1
+          fi
 
       # --- 基本情報ログ ---
       - name: Debug event
