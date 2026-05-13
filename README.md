@@ -41,7 +41,7 @@ AeroSpec is a web-based, real-time, high-precision audio analysis tool that requ
 1. Clone this repository or download the files.
 2. Build the WASM package once:
    ```bash
-   cd /home/runner/work/AudioAnalyzer/AudioAnalyzer/wasm-fft
+   cd wasm-fft
    wasm-pack build --target web --release
    ```
 3. Serve the directory using a local web server (e.g., Live Server in VS Code).
