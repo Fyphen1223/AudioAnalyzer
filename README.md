@@ -39,9 +39,14 @@ AeroSpec is a web-based, real-time, high-precision audio analysis tool that requ
 ## 🚀 How to Use
 
 1. Clone this repository or download the files.
-2. Serve the directory using a local web server (e.g., Live Server in VS Code).
+2. Build the WASM package once:
+   ```bash
+   cd wasm-fft
+   wasm-pack build --target web --release
+   ```
+3. Serve the directory using a local web server (e.g., Live Server in VS Code).
    _(Note: Modern browsers require `http://localhost` or `https://` to access microphone and audio APIs)._
-3. Click **"Start Microphone"** to analyze live audio, or **Drag & Drop** an audio file anywhere on the screen to begin.
+4. Click **"Start Microphone"** to analyze live audio, or **Drag & Drop** an audio file anywhere on the screen to begin.
 
 or
 
